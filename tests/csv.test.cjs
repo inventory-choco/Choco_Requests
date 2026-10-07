@@ -1,0 +1,16 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { parseCSV, readRoutes } = require('../csv.js');
+assert.deepEqual(parseCSV('\uFEFFa,b\r\n"A, B","say ""hello"""\r\n"two\nlines",001\r\n'), [['a', 'b'], ['A, B', 'say "hello"'], ['two\nlines', '001']]);
+assert.throws(() => parseCSV('a,"unfinished'), /Unclosed/);
+const text = fs.readFileSync(path.join(__dirname, '..', 'TRANSFER_CONF.csv'), 'utf8');
+const routes = readRoutes(text);
+assert.equal(routes.length, 844);
+assert.deepEqual([...new Set(routes.map(route => route.country))].sort(), ['BAHRAIN', 'OMAN', 'UAE']);
+assert.equal(routes[0].supplier, 'CHOCOLALA FACTORY LLC (ONE PERSON)');
+assert.equal(routes[0].code, '1001');
+assert.equal(readRoutes(text.replace('TO LEGAL ENTITY,', 'TO LEGAL ENTITY,SUPPLIER'))[0].supplier, routes[0].supplier);
+assert.throws(() => readRoutes(text + '\nUAE,broken'), /unexpected number/);
+assert.throws(() => readRoutes('wrong,headers\nvalue,value'), /Missing CSV column/);
+console.log(`CSV checks passed: ${routes.length} routes, quoted fields, supplier heading fallback, and malformed data validation.`);
