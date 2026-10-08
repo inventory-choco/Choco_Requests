@@ -6,14 +6,15 @@
   <meta name="description" content="Inventory Department branch transfer request forms.">
   <title>Inventory Department · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css?v=20261008d">
-  <script src="csv.js?v=20261008d" defer></script>
-  <script src="rules.js?v=20261008d" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261008e">
+  <script src="csv.js?v=20261008e" defer></script>
+  <script src="rules.js?v=20261008e" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
-  <script src="pdf.js?v=20261008d" defer></script>
-  <script src="products.js?v=20261008d" defer></script>
-  <script src="language.js?v=20261008d" defer></script>
-  <script src="app.js?v=20261008d" defer></script>
+  <script src="excel.js?v=20261008e" defer></script>
+  <script src="pdf.js?v=20261008e" defer></script>
+  <script src="products.js?v=20261008e" defer></script>
+  <script src="language.js?v=20261008e" defer></script>
+  <script src="app.js?v=20261008e" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">ID</span><span>Inventory Department<small>BRANCH OPERATIONS</small></span></a><label class="language-control"><span>Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ar">العربية</option></select></label></header>
@@ -45,9 +46,9 @@
           <div class="table-scroll"><table class="entry-table"><thead><tr><th scope="col">#</th><th scope="col">Barcode</th><th scope="col">Item code</th><th scope="col">Batch</th><th scope="col">Item name</th><th scope="col">UOM</th><th scope="col">Quantity</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead><tbody id="item-rows"></tbody></table></div>
           <div class="items-footer"><span id="item-count">0 items</span><span>22 items per PDF page</span><button id="add-row-bottom" class="secondary" type="button">+ Add item</button></div>
         </section>
-        <section class="panel" id="signature-panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><div><label>Prepared and sent by<input id="prepared" required maxlength="100" placeholder="Your name"></label><div class="signature-label">Signature <span class="required-badge">Required</span> <span class="optional">(mouse or touch)</span></div><canvas id="signature" width="900" height="300" aria-label="Prepared by signature pad" tabindex="0"></canvas><p id="signature-error" class="field-error" role="alert" hidden>Signature required before download.</p><button id="clear-signature" type="button" class="secondary">Clear signature</button></div><label>Received by <span class="optional">(optional)</span><input id="received" maxlength="100" placeholder="Receiver’s name"></label></div><p class="field-help">Download the signed PDF and attach it to your email. The form text remains selectable.</p></section>
+        <section class="panel" id="signature-panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><div><label>Prepared and sent by<input id="prepared" required maxlength="100" placeholder="Your name"></label><div class="signature-label">Signature <span class="required-badge">Required</span> <span class="optional">(mouse or touch)</span></div><canvas id="signature" width="900" height="300" aria-label="Prepared by signature pad" tabindex="0"></canvas><p id="signature-error" class="field-error" role="alert" hidden>Signature required before download.</p><button id="clear-signature" type="button" class="secondary">Clear signature</button></div><label>Received by <span class="optional">(optional)</span><input id="received" maxlength="100" placeholder="Receiver’s name"></label></div><p class="field-help">Download the signed PDF and attach it to your email. The form text remains selectable. For Excel columns, use Download Excel or extract the Items.xlsx attachment from the PDF.</p></section>
       </form>
-      <div class="bottom-actions"><span class="field-help">Sign, then download your PDF.</span><button id="print-bottom" class="primary" type="button" disabled>Download PDF</button></div></div><aside class="automatic-panel"><section class="automatic-details"><h2>Automatic details <small class="auto-badge">Read only</small></h2>          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div id="supplier-details" hidden><span>SUPPLIER</span><strong id="supplier"></strong></div></div>
+      <div class="bottom-actions"><span class="field-help">Sign, then download your PDF.</span><button id="excel-download" class="secondary" type="button">Download Excel</button><button id="print-bottom" class="primary" type="button" disabled>Download PDF</button></div></div><aside class="automatic-panel"><section class="automatic-details"><h2>Automatic details <small class="auto-badge">Read only</small></h2>          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div id="supplier-details" hidden><span>SUPPLIER</span><strong id="supplier"></strong></div></div>
           <div class="field-grid four">
             <label>Transfer type<input id="type" readonly placeholder="Select a route"></label>
             <label>Transfer date<input id="date" type="date" readonly></label>
