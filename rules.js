@@ -24,11 +24,10 @@
   function branchProfile(routes, country, branch) {
     const outgoing = routes.filter(r => r.country === country && r.from === branch);
     const incoming = routes.filter(r => r.country === country && r.to === branch);
-    const records = outgoing.length ? outgoing.map(r => ({entity:r.fromEntity,warehouse:r.fromWarehouse,supplier:r.supplier})) : incoming.map(r => ({entity:r.toEntity,warehouse:r.toWarehouse,supplier:''}));
-    if (!records.length || records.some(r => !r.entity || !r.warehouse)) return null;
-    if (new Set(records.map(r => entityKey(r.entity))).size !== 1 || new Set(records.map(r => r.warehouse)).size !== 1) return null;
-    const suppliers = [...new Set(records.map(r => r.supplier).filter(Boolean))];
-    return {...records[0], supplier:suppliers.length === 1 ? suppliers[0] : ''};
+    const records = [...outgoing.map(r=>({entity:r.fromEntity,warehouse:r.fromWarehouse,supplier:r.supplier})),...incoming.map(r=>({entity:r.toEntity,warehouse:r.toWarehouse,supplier:''}))];
+    if(!records.length)return null;
+    const unique = (key,normalize=v=>v) => {const entries=records.map(r=>r[key]).filter(Boolean);return new Set(entries.map(normalize)).size===1?entries[0]:'';};
+    return {entity:unique('entity',entityKey),warehouse:unique('warehouse'),supplier:unique('supplier')};
   }
   function unconfiguredRoute(routes, country, from, to) {
     if (!from || !to || from === to) return null;
@@ -36,7 +35,7 @@
     return {country,criteria:from+to,from,to,code:'',name:from+' to '+to,
       fromEntity:source?.entity||'',toEntity:destination?.entity||'',
       fromWarehouse:source?.warehouse||'',toWarehouse:destination?.warehouse||'',
-      supplier:source?.supplier||'',unconfigured:true,detailsMissing:true};
+      supplier:source?.supplier||'',unconfigured:true,detailsMissing:!source?.entity||!destination?.entity};
   }
   function hasSignature(strokes) { return Array.isArray(strokes) && strokes.some(stroke => Array.isArray(stroke) && stroke.some((p,i) => i > 0 && Math.hypot(p[0]-stroke[i-1][0],p[1]-stroke[i-1][1]) > .002)); }
   const api = { hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };

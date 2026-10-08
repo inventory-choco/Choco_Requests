@@ -6,7 +6,7 @@
   'Select a request to begin.':'اختر طلباً للبدء.','Transfer':'تحويل','Sample / Consumption':'عينات / استهلاك','Damages / Expiry':'تلف / انتهاء الصلاحية',
   'Create transfer':'إنشاء تحويل','Coming later':'قريباً','All forms':'جميع النماذج','STOCK MOVEMENT':'حركة المخزون','Transfer request':'طلب تحويل',
   'Download PDF':'تنزيل PDF','Choose the branches':'اختر الفروع','Country':'الدولة','Transfer from':'التحويل من','Transfer to':'التحويل إلى','Reason':'السبب',
-  'Warehouse route':'مسار المستودع','Enter the items':'أدخل الأصناف','+ Add item':'+ إضافة صنف','4 barcode':'باركود 4','3 barcode':'باركود 3',
+  'Warehouse route':'مسار المستودع','Enter the items':'أدخل الأصناف','+ Add item':'+ إضافة صنف','Barcode':'الباركود','4 barcode':'باركود 4','3 barcode':'باركود 3',
   'Item code':'رمز الصنف','Batch':'الدفعة','Item name':'اسم الصنف','UOM':'وحدة القياس','Quantity':'الكمية','Remove':'حذف',
   'Prepared & received':'الإعداد والاستلام','Prepared and sent by':'أعده وأرسله','Received by':'المستلم','Signature':'التوقيع','Required':'مطلوب',
   '(mouse or touch)':'(بالفأرة أو اللمس)','(optional)':'(اختياري)','Clear signature':'مسح التوقيع','Automatic details':'البيانات التلقائية','Read only':'للقراءة فقط',
@@ -31,7 +31,7 @@
    if(!original.has(node))original.set(node,node.textContent);
    const source=original.get(node),trimmed=source.trim();if(arabic[trimmed])node.textContent=source.replace(trimmed,header(trimmed,lang));
   }
-  document.querySelectorAll('#item-rows td[data-label]').forEach(cell=>{const key=cell.querySelector('input,textarea')?.name,labels={barcode4:'4 barcode',barcode3:'3 barcode',code:'Item code',batch:'Batch',name:'Item name',uom:'UOM',quantity:'Quantity'};if(labels[key])cell.dataset.label=header(labels[key],lang);});
+  (scope||document).querySelectorAll('#item-rows td[data-label]').forEach(cell=>{const key=cell.querySelector('input,textarea')?.name,labels={barcode:'Barcode',barcode4:'4 barcode',barcode3:'3 barcode',code:'Item code',batch:'Batch',name:'Item name',uom:'UOM',quantity:'Quantity'};if(labels[key])cell.dataset.label=header(labels[key],lang);});
   const code=document.getElementById('code-label');if(code){const english=code.dataset.english||'Supplier code / TR code';code.textContent=header(english,lang);}
  }
  const api={header,language,apply};if(typeof module!=='undefined'&&module.exports)module.exports=api;else{

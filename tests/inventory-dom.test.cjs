@@ -27,7 +27,7 @@ function field(name,row=0){return d.querySelectorAll('#item-rows tr')[row].query
  const to=d.getElementById('to');to.value=target;to.dispatchEvent(new w.Event('input'));
  assert.equal(d.getElementById('print-button').disabled,false,'missing pair permits a form');
  assert.equal(d.getElementById('route-notice').hidden,true,'missing-pair warning removed');
- assert.equal(d.getElementById('route-details').hidden,true,'missing details hidden');
+ assert.equal(d.getElementById('route-details').hidden,false,'branch records supply details without a configured pair');assert.match(d.getElementById('from-entity').textContent,/46697/);assert.match(d.getElementById('to-entity').textContent,/643223/);
  assert.equal(d.getElementById('type').readOnly,true);
  input('code','117588');
  assert.equal(field('name').value,'ROASTED BEANS COLOMBIA');assert.equal(field('uom').value,'Kilogram');
@@ -42,8 +42,12 @@ function field(name,row=0){return d.querySelectorAll('#item-rows tr')[row].query
  for(const [type,x,y]of [['pointerdown',90,40],['pointermove',220,110],['pointerup',220,110]]){const event=new w.MouseEvent(type,{clientX:x,clientY:y});Object.defineProperty(event,'pointerId',{value:1});canvas.dispatchEvent(event);}
  assert.equal(w.InventoryTestHooks.validate(),true,'signed valid item passes with empty spare row');
  input('code','999999');assert.equal(field('name').value,'');assert.equal(field('uom').value,'');assert.equal(field('batch').required,false);assert.equal(field('batch').readOnly,false);
- input('barcode3','3117474148970');assert.equal(field('code').value,'117474');assert.equal(field('code').readOnly,true);assert.equal(field('barcode4').readOnly,true);assert.equal(field('batch').readOnly,false,'catalog batched product permits batch after 3 barcode');
- input('barcode3','');input('barcode4','4117588148970');assert.equal(field('code').value,'117588');assert.equal(field('batch').readOnly,true);assert.equal(field('batch').value,'','non-batched item discards scanned batch');assert.equal(field('uom').value,'Kilogram');
+ input('barcode','3117474148970');assert.equal(field('code').value,'117474');assert.equal(field('code').readOnly,true);assert.equal(d.querySelectorAll('#item-rows tr')[0].cells.length,8,'one barcode entry column');assert.equal(w.InventoryTestHooks.snapshot().items[0].barcode3,'3117474148970');assert.equal(field('batch').readOnly,false,'catalog batched product permits batch after 3 barcode');
+ input('batch','ABC123');const threeSaved=w.InventoryTestHooks.snapshot();w.InventoryTestHooks.restore(threeSaved);assert.equal(field('batch').value,'ABC123','restoring a batched 3-barcode preserves the manually entered batch');assert.equal(w.InventoryTestHooks.validate(),true);
+ input('barcode','');input('barcode','4117588148970');assert.equal(field('code').value,'117588');assert.equal(field('batch').readOnly,true);assert.equal(field('batch').value,'','non-batched item discards scanned batch');assert.equal(field('uom').value,'Kilogram');
+ const scan=field('barcode');input('barcode','411758814897');scan.dispatchEvent(new w.Event('blur'));assert.equal(scan.checkValidity(),false,'partial barcode rejected on blur');input('barcode','41175881489700');assert.equal(scan.checkValidity(),false,'extra digits rejected immediately');input('barcode','9117588148970');assert.equal(scan.checkValidity(),false,'unlisted prefix rejected');
+ const [upc,upcCode]=[...catalog.upcs].find(([u,c])=>c&&!/^[34]\d{12}$/.test(u));input('barcode',upc);assert.equal(field('code').value,upcCode,'real UPC resolves exact product');assert.equal(scan.checkValidity(),true);assert.equal(field('code').readOnly,true);assert.equal(w.InventoryTestHooks.snapshot().items[0].barcode3,upc,'UPC retained in existing printed barcode column');
+ input('barcode','4117588148970');assert.equal(w.InventoryTestHooks.snapshot().items[0].barcode4,'4117588148970');assert.equal(w.InventoryTestHooks.snapshot().items[0].barcode3,'');
  const before=w.InventoryTestHooks.snapshot();d.getElementById('language').value='ar';d.getElementById('language').dispatchEvent(new w.Event('change'));
  assert.equal(d.documentElement.lang,'ar');assert.equal(d.querySelector('label[for=from]').textContent,'التحويل من');
  assert.equal(field('name').value,before.items[0].name,'language preserves input data');assert.equal(from.value,source);
