@@ -1,4 +1,4 @@
-# Chocolala branch forms
+# Inventory Department branch forms
 
 Static website for GitHub Pages. Transfer is available. Sample / Consumption and Damages / Expiry are reserved for a later phase.
 
@@ -8,17 +8,17 @@ Run `python -m http.server 8080 --bind 127.0.0.1` in this folder and open http:/
 
 ## Publish and update
 
-Upload index.html, styles.css, app.js, csv.js, rules.js, pdf.js, favicon.svg, .nojekyll, TRANSFER_CONF.csv, and the entire vendor folder to the repository root. In GitHub Settings → Pages choose Deploy from a branch and the repository root. Share the Pages URL after deployment. The GitHub Desktop checkout is D:\github\CHOCOLALA\Choco_Requests; ensure updated website files and CSV are copied there before committing and pushing.
+Upload index.html, styles.css, app.js, csv.js, rules.js, pdf.js, products.js, language.js, favicon.svg, .nojekyll, TRANSFER_CONF.csv, products.csv, and the entire vendor folder to the repository root. In GitHub Settings → Pages choose Deploy from a branch and the repository root. Share the Pages URL after deployment. The GitHub Desktop checkout is D:\github\CHOCOLALA\Choco_Requests; ensure updated website files and CSV are copied there before committing and pushing.
 
 Edit TRANSFER_CONF.csv centrally and push the revision. Branches reload the same link to get current routes. The unnamed final column is read as SUPPLIER; it can also be renamed SUPPLIER. UTF-8 and Windows-1252 CSV files are supported. Retain the headings and quoting.
 
 ## Transfer rules
 
-Both branch lists include all branches in the selected country. Search matches case-insensitive partial words in any order. Country and branch options are remembered in this browser. Configured pairs use their exact CSV route. Missing pairs use unambiguous branch legal entity and warehouse records, preferring source records, with a blank route code and a visible notice. Missing or conflicting branch records require an explicit CSV route. Route matching uses country and CRITERIA = source name + destination name; warehouse choices resolve duplicate routes.
+Both branch lists include all branches in the selected country. Search matches case-insensitive partial words in any order. Country and branch options are remembered in this browser. Configured pairs use their exact CSV route. Any two different branches in a country can be selected. Missing pairs are normal: no entry warning is shown, pair details and codes are hidden, branch names remain visible, and the PDF includes a Details not found note. Legal entities from unambiguous branch records determine the automatic type where available. Route matching uses country and CRITERIA = source name + destination name; warehouse choices resolve duplicate routes.
 
 Legal entity comparison ignores case, repeated whitespace and a hyphen before the final entity number. Equal entities show Internal Transfer, hide supplier, and use CSV CODE as TR code. Different entities show Intercompany Sales/Purchase and a supplier code extracted from the final digits of SUPPLIER, preserving leading zeros; no final digits means an empty supplier code. Transfer type, date, reference and codes are read-only. Date/reference are created in Dubai time for each new form; saved forms retain their original date/reference. References use a local timestamp and are not centrally guaranteed unique.
 
-Reason choices are Shop Request (default) and Customer Order. UOM is searchable with a native datalist and restricted to the supplied 22 choices.
+Reason choices are Shop Request (default) and Customer Order. UOM is searchable and comes from products.csv.
 
 Item code: exactly 6 digits. Optional 3 barcode: exactly 13 digits starting with 3. Optional 4 barcode: exactly 13 digits starting with 4. Optional batch: 6–17 characters. Wrong prefixes, non-digits and overlength values show inline errors while typing. An incomplete nonempty barcode shows an inline error on blur, Enter or Tab; Enter/Tab keep focus there until corrected. Empty 4 barcodes are allowed for manual entry. A valid barcode followed by Enter or Tab moves directly to item name, skipping locked fields. A complete valid 4 barcode sets and locks item code (characters 2–7) and batch (last six characters), and defaults UOM to Pieces and quantity to 1. UOM and quantity remain editable. Removing or making the barcode incomplete unlocks code/batch, while invalid nonempty barcodes still block PDF download. A scanner's Enter key moves to Item name. Enter on a completed valid quantity adds the next item and focuses its barcode. Item fields wrap into labelled cards, with growing item-name/batch fields and no horizontal scrolling. Automatic legal entities, warehouses, type, date, reference and codes appear in the sidebar.
 
@@ -41,3 +41,13 @@ Run `node --check app.js`, `node tests/csv.test.cjs`, `node tests/rules.test.cjs
 ## Field colors
 
 Blue fields accept entry. Grey fields are automatic/read-only. Barcode autofill switches locked fields to grey; clearing the barcode restores blue editable fields.
+
+## Product lookup and entry
+
+products.csv uses Product Code, Product Name, UOM, Batched Product (Y/N). Six-digit codes populate names and UOM. Batched products require 6-17 batch characters; a valid 4 barcode supplies the batch. For a known non-batched product, batch is cleared and locked. For a known batched product entered through a 3 barcode, batch becomes editable and required. Unknown codes retain manual entry. Non-six-digit product codes (including scientific notation) are excluded from lookup without changing the CSV. Starting an item automatically adds an empty spare row. Empty rows are excluded from validation, saved forms and PDF pagination.
+
+A drawn signature is mandatory; a blank pad or a single click blocks download.
+
+English is the default language. Arabic translates headings and labels on the page and PDF; entered names, reason, type, codes and UOM values are unchanged. Language preference is saved locally. Arabic PDFs embed the vendored Noto Sans Arabic font and use text, not page images. Retain font and library licenses in vendor.
+
+For isolated DOM checks: npm install --prefix tmp/test-runtime jsdom@26 --no-audit --no-fund, then node tests/inventory-dom.test.cjs. Also run node tests/pdf-arabic.test.cjs. Tests generate sample PDFs under tmp/pdfs.

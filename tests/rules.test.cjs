@@ -2,9 +2,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { readRoutes } = require('../csv.js');
-const { transferDetails, barcodeDetails, barcode3Details, branchMatches, unconfiguredRoute, uoms } = require('../rules.js');
+const { transferDetails, barcodeDetails, barcode3Details, branchMatches, unconfiguredRoute, hasSignature, uoms } = require('../rules.js');
 const routes = readRoutes(fs.readFileSync(path.join(__dirname, '..', 'TRANSFER_CONF.csv'), 'utf8'));
-const internal = routes.find(route => route.criteria === 'Chocolala Al Ain- 1Chocolala Al Ain- 3');
+const internal = routes.find(route => route.code === '1125');
 assert.ok(internal);
 assert.equal(transferDetails(internal).type, 'Internal Transfer');
 assert.equal(transferDetails(internal).code, '1125');
@@ -41,9 +41,11 @@ assert.equal(branchMatches('Madinati Mall Zayed','zay madin'),true);
 assert.equal(branchMatches('Chocolala Al Ain- 1','ain 1'),true);
 assert.equal(branchMatches('Chocolala Barsha Mall','barsha zay'),false);
 
-const hamra=unconfiguredRoute(routes,'UAE','Chocola Pure Al Hamra','Chocolala Al Ain- 1');
+const hamra=unconfiguredRoute(routes,'UAE',routes.find(r=>r.code==='1718').from,internal.from);
 assert.ok(hamra);assert.equal(hamra.code,'');assert.equal(transferDetails(hamra).type,'Intercompany Sales/Purchase');
-assert.equal(transferDetails(hamra).code,'46697');
+assert.equal(transferDetails(hamra).code,'');assert.equal(hamra.detailsMissing,true);
 assert.equal(unconfiguredRoute(routes,'UAE','Chocola Pure Al Hamra','Chocola Pure Al Hamra'),null);
 const conflict=[{country:'UAE',from:'A',fromEntity:'Company A',fromWarehouse:'A WH',to:'B',toEntity:'Company B',toWarehouse:'B WH'},{country:'UAE',from:'A',fromEntity:'Company C',fromWarehouse:'A WH',to:'C',toEntity:'Company C',toWarehouse:'C WH'}];
-assert.equal(unconfiguredRoute(conflict,'UAE','A','B'),null);
+assert.ok(unconfiguredRoute(conflict,'UAE','A','B'));assert.equal(unconfiguredRoute(conflict,'UAE','A','B').detailsMissing,true);
+
+assert.equal(hasSignature([]),false);assert.equal(hasSignature([[[.2,.2],[.2,.2]]]),false);assert.equal(hasSignature([[[.2,.2],[.3,.4]]]),true);
