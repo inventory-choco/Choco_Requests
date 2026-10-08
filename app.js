@@ -1,141 +1,78 @@
 'use strict';
-const $ = id => document.getElementById(id);
-let routes = [], selectedRoute = null;
-let rowSequence = 0;
-function options(select, values, placeholder) {
-  select.replaceChildren(new Option(placeholder, ''));
-  [...new Set(values)].sort((a, b) => a.localeCompare(b)).forEach(value => select.add(new Option(value, value)));
-  select.disabled = !values.length;
+const $=id=>document.getElementById(id), memoryKey='chocolala.transfer.branch-options.v1', formsKey='chocolala.transfer.forms.v1';
+let routes=[], selectedRoute=null, sourceBranches=[], destinationBranches=[], chosenFrom='', chosenTo='', rowSequence=0, signature=[], drawing=null, pointer=null, saveTimer, loading=false, formId=crypto.randomUUID(), suffix='', savedForms=[], dirty=false;
+const sorted=values=>[...new Set(values)].sort((a,b)=>a.localeCompare(b));
+function fitTextarea(input){input.style.height='auto';input.style.height=Math.max(40,input.scrollHeight+2)+'px';}
+window.addEventListener('resize',()=>document.querySelectorAll('.entry-table textarea').forEach(fitTextarea));
+function status(message){$('action-status').hidden=false;$('action-status').textContent=message;}
+function remember(){try{localStorage.setItem(memoryKey,JSON.stringify({country:$('country').value,from:chosenFrom,to:chosenTo,code:selectedRoute?.code||''}));}catch(_){}}
+function checkBarcode(input,committed){
+ const value=input.value,prefix=input.name==='barcode3'?'3':'4';
+ const message=!value||new RegExp('^'+prefix+'\\d{12}$').test(value)?'':value[0]!==prefix?prefix+' barcode must start with '+prefix+'.':/\D/.test(value)?'Use digits only.':value.length>13?prefix+' barcode must be exactly 13 digits.':committed?'Enter all 13 digits before continuing.':'';
+ input.setCustomValidity(message);input.setAttribute('aria-invalid',String(!!message));
+ let hint=input.parentElement.querySelector('.field-error');if(!hint){hint=document.createElement('span');hint.className='field-error';hint.id='barcode-error-'+(++errorSequence);hint.setAttribute('aria-live','polite');input.parentElement.append(hint);input.setAttribute('aria-describedby',hint.id);}hint.textContent=message;hint.hidden=!message;
+ return !message;
 }
-function showPage() {
-  const transfer = location.hash === '#transfer';
-  $('home').hidden = transfer; $('transfer').hidden = !transfer;
-  document.title = transfer ? 'Transfer request · Chocolala' : 'Chocolala · Branch Operations';
+let errorSequence=0;const sessionVersions=new Map();
+function nextVersion(reference){
+ let counters={};try{counters=JSON.parse(localStorage.getItem('chocolala.transfer.version-counters.v1')||'{}');}catch(_){}
+ return Math.max(sessionVersions.get(reference)||0,Number(counters[reference])||0,...savedForms.filter(s=>s.reference===reference).map(s=>Number(s.version)||0))+1;
 }
-function chooseRoute(route) {
-  selectedRoute = route; $('route-details').hidden = !route;
-  if (route) {
-    $('from-entity').textContent = route.fromEntity;
-    $('to-entity').textContent = route.toEntity;
-    $('from-warehouse').textContent = route.fromWarehouse;
-    $('to-warehouse').textContent = route.toWarehouse;
-    $('supplier').textContent = route.supplier || 'Not specified in branch data';
-    $('route-code').textContent = 'Route code: ' + route.code;
-  }
-  $('print-button').disabled = $('print-bottom').disabled = !route;
+function saveDownload(data){
+ sessionVersions.set(data.reference,data.version);
+ const next=[data,...savedForms.filter(s=>s.id!==formId)].slice(0,10);
+ try{localStorage.setItem(formsKey,JSON.stringify(next));let counters={};try{counters=JSON.parse(localStorage.getItem('chocolala.transfer.version-counters.v1')||'{}');}catch(_){}counters[data.reference]=data.version;localStorage.setItem('chocolala.transfer.version-counters.v1',JSON.stringify(counters));savedForms=next;dirty=false;renderSaved();$('save-status').textContent='Version '+data.version+' saved in this browser.';}catch(_){$('save-status').textContent='PDF downloaded, but browser storage could not save this version.';}
 }
-$('country').addEventListener('change', () => {
-  options($('from'), routes.filter(route => route.country === $('country').value).map(route => route.from), 'Select source branch');
-  options($('to'), [], 'Select destination');
-  $('route-choice-wrap').hidden = true; chooseRoute(null);
-});
-$('from').addEventListener('change', () => {
-  options($('to'), routes.filter(route => route.country === $('country').value && route.from === $('from').value).map(route => route.to), 'Select destination');
-  $('route-choice-wrap').hidden = true; chooseRoute(null);
-});
-$('to').addEventListener('change', () => {
-  const matches = routes.filter(route => route.country === $('country').value && route.from === $('from').value && route.to === $('to').value);
-  $('route-choice-wrap').hidden = matches.length <= 1;
-  $('route-choice').replaceChildren(new Option('Select warehouse route', ''));
-  matches.forEach(route => $('route-choice').add(new Option(route.code + ' · ' + route.fromWarehouse + ' → ' + route.toWarehouse, String(routes.indexOf(route)))));
-  chooseRoute(matches.length === 1 ? matches[0] : null);
-});
-$('route-choice').addEventListener('change', () => chooseRoute($('route-choice').value === '' ? null : routes[Number($('route-choice').value)]));
-function updateCount() {
-  [...$('item-rows').rows].forEach((row, index) => {
-    row.cells[0].textContent = index + 1;
-    row.querySelector('.remove-row').setAttribute('aria-label', 'Remove item ' + (index + 1));
-  });
-  const count = $('item-rows').rows.length;
-  $('item-count').textContent = count + (count === 1 ? ' item' : ' items');
+function search(input,list,getValues,choose){
+ let index=-1;
+ function close(){list.hidden=true;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');index=-1;}
+ function render(){const values=getValues().filter(v=>TransferRules.branchMatches(v,input.value));list.replaceChildren();index=-1;input.removeAttribute('aria-activedescendant');values.forEach((value,i)=>{const b=document.createElement('button');b.type='button';b.role='option';b.tabIndex=-1;b.id=input.id+'-result-'+i;b.textContent=value;b.setAttribute('aria-selected','false');b.addEventListener('mousedown',e=>e.preventDefault());b.addEventListener('click',()=>{input.value=value;choose(value);input.focus();close();remember();scheduleSave();});list.append(b);});if(!values.length){const p=document.createElement('p');p.textContent='No matches';list.append(p);}list.hidden=false;input.setAttribute('aria-expanded','true');}
+ input.addEventListener('focus',render);input.addEventListener('blur',close);input.addEventListener('input',()=>{choose(getValues().includes(input.value)?input.value:'',true);render();remember();scheduleSave();});
+ input.addEventListener('keydown',e=>{if(e.key==='Escape')return close();if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();if(list.hidden)render();const choices=[...list.querySelectorAll('[role=option]')];if(!choices.length)return;index=(index+(e.key==='ArrowDown'?1:-1)+choices.length)%choices.length;choices.forEach((b,i)=>b.setAttribute('aria-selected',String(i===index)));input.setAttribute('aria-activedescendant',choices[index].id);choices[index].scrollIntoView({block:'nearest'});}else if(e.key==='Enter'&&!list.hidden){e.preventDefault();const choices=[...list.querySelectorAll('[role=option]')],b=choices[index]||(choices.length===1?choices[0]:null);if(b){input.value=b.textContent;choose(b.textContent);close();remember();scheduleSave();}}});return close;
 }
-function addRow() {
-  const row = $('item-rows').insertRow(); rowSequence++;
-  row.insertCell().textContent = '';
-  const fields = [['code', 'Item code'], ['barcode3', '3 barcode'], ['barcode4', '4 barcode'], ['batch', 'Batch'], ['name', 'Item name'], ['uom', 'UOM'], ['quantity', 'Quantity']];
-  for (const [key, label] of fields) {
-    const input = document.createElement('input');
-    input.name = key; input.setAttribute('aria-label', label + ' for item ' + rowSequence);
-    input.type = key === 'quantity' ? 'number' : 'text';
-    input.maxLength = key === 'name' ? 150 : 80;
-    input.required = ['code', 'name', 'uom', 'quantity'].includes(key);
-    if (key === 'quantity') { input.min = '0.001'; input.step = '0.001'; input.placeholder = '0.000'; }
-    if (key === 'uom') { input.setAttribute('list', 'uom-options'); input.placeholder = 'Pieces'; }
-    row.insertCell().append(input);
-  }
-  const button = document.createElement('button'); button.type = 'button'; button.className = 'remove-row'; button.textContent = '×';
-  button.addEventListener('click', () => {
-    if ($('item-rows').rows.length === 1) row.querySelectorAll('input').forEach(input => { input.value = ''; input.setCustomValidity(''); });
-    else row.remove();
-    updateCount();
-  });
-  row.insertCell().append(button); updateCount(); return row;
+function chooseRoute(route){selectedRoute=route;const d=route?TransferRules.transferDetails(route):null;$('route-details').hidden=!route;$('supplier-details').hidden=!d||d.internal;$('type').value=d?.type||'';$('code-label').textContent=d?.codeLabel||'Supplier code / TR code';$('supplier-code').value=d?.code||'';$('reference').value=(d?.prefix||'TR')+suffix;if(route)for(const [id,value]of[['from-entity',route.fromEntity],['to-entity',route.toEntity],['from-warehouse',route.fromWarehouse],['to-warehouse',route.toWarehouse],['supplier',d.supplier]])$(id).textContent=value;$('print-button').disabled=$('print-bottom').disabled=!route;}
+function setDestination(code=''){
+ const matches=routes.filter(r=>r.country===$('country').value&&r.from===chosenFrom&&r.to===chosenTo&&r.criteria===chosenFrom+chosenTo);
+ $('route-choice-wrap').hidden=matches.length<=1;$('route-choice').replaceChildren(new Option('Select warehouse route',''));
+ matches.forEach(r=>$('route-choice').add(new Option(r.code+' · '+r.fromWarehouse+' → '+r.toWarehouse,String(routes.indexOf(r)))));
+ const selected=matches.find(r=>r.code===code)||(matches.length===1?matches[0]:null)||(!matches.length?TransferRules.unconfiguredRoute(routes,$('country').value,chosenFrom,chosenTo):null);
+ if(selected&&!selected.unconfigured)$('route-choice').value=String(routes.indexOf(selected));chooseRoute(selected);
+ const notice=$('route-notice');notice.hidden=true;
+ if(chosenFrom&&chosenTo){if(chosenFrom===chosenTo){notice.textContent='Choose two different branches.';notice.hidden=false;}else if(selected?.unconfigured){notice.textContent='Branch details filled from the CSV. This pair has no configured route code; the code remains blank. Add this pair to the CSV if a transfer code is required.';notice.hidden=false;}else if(!matches.length){notice.textContent='This pair needs a CSV route: branch legal entity or warehouse records are missing or inconsistent.';notice.hidden=false;}}
 }
-const uoms = document.createElement('datalist'); uoms.id = 'uom-options';
-['Pieces', 'Kilogram', 'Box', 'Tray', 'Litre', 'Pack'].forEach(value => uoms.append(new Option(value, value))); document.body.append(uoms);
-$('add-row').addEventListener('click', () => addRow().querySelector('input').focus());
-$('transfer-form').addEventListener('submit', event => event.preventDefault());
-$('transfer-form').addEventListener('input', event => {
-  if (event.target.matches('input')) event.target.setCustomValidity('');
-});
-const now = new Date();
-$('date').value = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Dubai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(now);
-const part = type => parts.find(value => value.type === type).value;
-$('reference').value = 'TR ' + part('day') + part('month') + part('year') + '-' + part('hour') + part('minute') + part('second');
-let automaticReference = $('reference').value;
-$('type').addEventListener('change', () => {
-  if ($('reference').value === automaticReference) {
-    automaticReference = ($('type').value === 'IC Sales/Purchase' ? 'IC' : 'TR') + automaticReference.slice(2);
-    $('reference').value = automaticReference;
-  }
-});
-function escapeHTML(value) { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]); }
-function buildPrint() {
-  if (!selectedRoute) return false;
-  for (const input of document.querySelectorAll('#transfer-form input[required]')) {
-    input.setCustomValidity(input.type !== 'number' && !input.value.trim() ? 'Please enter ' + (input.getAttribute('aria-label') || 'this field') + '.' : '');
-  }
-  if (!$('transfer-form').reportValidity()) return false;
-  const route = selectedRoute;
-  const items = [...$('item-rows').rows].map(row => Object.fromEntries([...row.querySelectorAll('input')].map(input => [input.name, input.value.trim()])));
-  const date = new Date($('date').value + 'T12:00:00');
-  const displayDate = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace(/ /g, '-');
-  const e = escapeHTML;
-  const blankRows = Math.max(0, 22 - items.length);
-  $('print-sheet').innerHTML = `
-    <table class="print-table print-meta"><colgroup><col style="width:19%"><col style="width:32%"><col style="width:34%"><col style="width:15%"></colgroup><tbody>
-      <tr class="print-banner"><td colspan="2">TRANSFER REQUEST FORM</td><td class="print-ref">${e($('reference').value)}</td><td>${e(displayDate)}</td></tr>
-      <tr><th>${e(route.country)}</th><th>BRANCH NAME</th><th>LEGAL ENTITY</th><th>Supplier code</th></tr>
-      <tr><th>TRANSFER FROM</th><td>${e(route.from)}</td><td>${e(route.fromEntity)}</td><td rowspan="2" style="text-align:center;color:#c00;font-size:16px">${e($('supplier-code').value || '—')}</td></tr>
-      <tr><th>TRANSFER TO</th><td>${e(route.to)}</td><td>${e(route.toEntity)}</td></tr>
-      <tr><th>FROM WAREHOUSE</th><td colspan="3">${e(route.fromWarehouse)}</td></tr>
-      <tr><th>TO WAREHOUSE</th><td colspan="3">${e(route.toWarehouse)}</td></tr>
-      <tr><th>SUPPLIER / ROUTE</th><td colspan="3">${e(route.supplier || 'Not specified')} · ${e(route.code)}</td></tr>
-      <tr><th>TYPE</th><td colspan="3" style="text-align:center;color:#c00">${e($('type').value)}</td></tr>
-      <tr><th>REASON</th><td colspan="3">${e($('reason').value)}</td></tr>
-    </tbody></table>
-    <table class="print-table print-items"><colgroup><col style="width:4%"><col style="width:10%"><col style="width:15%"><col style="width:15%"><col style="width:15%"><col style="width:24%"><col style="width:8%"><col style="width:9%"></colgroup><thead><tr><th>#</th><th>ITEM CODE</th><th>3 BARCODE</th><th>4 BARCODE</th><th>BATCH</th><th>ITEM NAME</th><th>UOM</th><th>QUANTITY</th></tr></thead><tbody>
-    ${items.map((item, index) => `<tr><td class="number">${index + 1}</td><td>${e(item.code)}</td><td>${e(item.barcode3)}</td><td>${e(item.barcode4)}</td><td>${e(item.batch)}</td><td>${e(item.name)}</td><td>${e(item.uom)}</td><td class="quantity">${Number(item.quantity).toFixed(3)}</td></tr>`).join('')}
-    ${Array.from({ length: blankRows }, (_, index) => `<tr><td class="number">${items.length + index + 1}</td>${'<td></td>'.repeat(7)}</tr>`).join('')}
-    </tbody></table><div class="print-signatures"><div><strong>Prepared and sent by</strong><p>${e($('prepared').value)}</p><div class="signature-line"></div>Name &amp; signature</div><div><strong>Received by</strong><p>${e($('received').value || ' ')}</p><div class="signature-line"></div>Name &amp; signature</div></div><p class="print-note">Chocolala · Transfer request · ${items.length} item(s)</p>`;
-  return true;
+
+function setSource(value,preserve=false){chosenFrom=sourceBranches.includes(value)?value:'';if(!preserve)$('from').value=chosenFrom;$('from').setCustomValidity(chosenFrom?'':'Choose a source branch from the results.');destinationBranches=[...sourceBranches];chosenTo=destinationBranches.includes(chosenTo)?chosenTo:'';$('to').value=chosenTo;$('to').disabled=!destinationBranches.length;$('to').setCustomValidity(chosenTo?'':'Choose a destination branch from the results.');closeTo();setDestination();}
+
+function setCountry(){chosenTo='';sourceBranches=sorted(routes.filter(r=>r.country===$('country').value).flatMap(r=>[r.from,r.to]));$('from').disabled=!sourceBranches.length;setSource('');closeFrom();}
+const closeFrom=search($('from'),$('from-results'),()=>sourceBranches,setSource),closeTo=search($('to'),$('to-results'),()=>destinationBranches,value=>{chosenTo=value;$('to').setCustomValidity(value?'':'Choose a destination branch from the results.');setDestination();});
+$('country').addEventListener('change',()=>{setCountry();remember();scheduleSave();});$('route-choice').addEventListener('change',()=>{chooseRoute($('route-choice').value===''?null:routes[Number($('route-choice').value)]);remember();scheduleSave();});
+function count(){[...$('item-rows').rows].forEach((row,i)=>{row.cells[0].textContent=String(i+1);row.querySelector('button').setAttribute('aria-label','Remove item '+(i+1));});const n=$('item-rows').rows.length;$('item-count').textContent=n+' item'+(n===1?'':'s');}
+function applyBarcode(row,defaults=true){
+ const four=row.querySelector('[name=barcode4]'),three=row.querySelector('[name=barcode3]'),v4=TransferRules.barcodeDetails(four.value),v3=v4?null:TransferRules.barcode3Details(three.value),values=v4||v3;
+ for(const key of ['code','batch','barcode3','barcode4']){const input=row.querySelector('[name='+key+']'),locked=!!values&&(key==='code'||key==='batch'||key===(v4?'barcode3':'barcode4'));input.readOnly=locked;input.tabIndex=locked?-1:0;if(locked){input.value=key==='code'?values.code:key==='batch'&&v4?values.batch:'';input.setCustomValidity('');if(key.startsWith('barcode'))checkBarcode(input,false);if(input.tagName==='TEXTAREA')fitTextarea(input);}}
+ if(values&&defaults){row.querySelector('[name=uom]').value='Pieces';row.querySelector('[name=uom]').setCustomValidity('');row.querySelector('[name=quantity]').value='1';}
 }
-function printForm() { if (buildPrint()) window.print(); }
-$('print-button').addEventListener('click', printForm);
-$('print-bottom').addEventListener('click', printForm);
-window.addEventListener('beforeprint', buildPrint);
-window.addEventListener('hashchange', showPage);
-addRow(); showPage();
-(async () => {
-  try {
-    const response = await fetch('TRANSFER_CONF.csv', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Could not load branch routes (HTTP ' + response.status + ').');
-    routes = TransferCSV.readRoutes(await response.text());
-    options($('country'), routes.map(route => route.country), 'Select country');
-    $('data-status').textContent = routes.length + ' transfer routes available. Select a country and source branch to see permitted destinations.';
-  } catch (error) {
-    $('data-status').classList.add('error');
-    $('data-status').textContent = 'Branch data could not be loaded. ' + error.message + (location.protocol === 'file:' ? ' Open this site through the local preview server or its hosted link.' : ' Please reload or contact your administrator.');
-  }
-})();
+function addRow(values={}){const row=$('item-rows').insertRow(),n=++rowSequence;row.insertCell();for(const [key,label]of[['barcode4','4 barcode'],['code','Item code'],['barcode3','3 barcode'],['batch','Batch'],['name','Item name'],['uom','UOM'],['quantity','Quantity']]){const input=document.createElement(['name','batch'].includes(key)?'textarea':'input');input.name=key;if(input.tagName==='INPUT')input.type=key==='quantity'?'number':'text';else input.rows=2;input.setAttribute('aria-label',label+' for item '+n);input.required=['code','name','uom','quantity'].includes(key);input.maxLength=key==='name'?150:80;if(key==='quantity'){input.min='.001';input.step='.001';input.placeholder='0.000';}if(['code','barcode3','barcode4'].includes(key)){const length=key==='code'?6:13;input.inputMode='numeric';input.minLength=length;input.pattern=key==='code'?'[0-9]{6}':(key==='barcode3'?'3':'4')+'[0-9]{'+(length-1)+'}';input.title='Enter exactly '+length+' digits'+(key==='code'?'.':' starting with '+(key==='barcode3'?'3.':'4.'));}if(key==='batch'){input.minLength=6;input.maxLength=17;input.pattern='.{6,17}';}if(key==='uom'){input.setAttribute('list','uom-options');input.placeholder='Type UOM';}input.value=values[key]||'';const cell=row.insertCell();cell.dataset.label=label;cell.append(input);if(key==='quantity')input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const invalid=[...row.querySelectorAll('input,textarea')].find(field=>!field.checkValidity());if(invalid){invalid.reportValidity();return;}addRow().querySelector('input').focus();scheduleSave();}});if(['barcode4','barcode3'].includes(key)){input.addEventListener('input',()=>{applyBarcode(row);checkBarcode(input,false);});input.addEventListener('blur',()=>checkBarcode(input,true));input.addEventListener('keydown',e=>{if(['Enter','Tab'].includes(e.key)){if(!checkBarcode(input,true)){e.preventDefault();input.reportValidity();return;}if(e.key==='Enter'||(e.key==='Tab'&&(TransferRules.barcodeDetails(input.value)||TransferRules.barcode3Details(input.value)))){e.preventDefault();row.querySelector((TransferRules.barcodeDetails(input.value)||TransferRules.barcode3Details(input.value))?'[name=name]':'[name=code]').focus();}}});}}
+ const b=document.createElement('button');b.type='button';b.className='remove-row';b.textContent='×';b.addEventListener('click',()=>{if($('item-rows').rows.length===1)row.querySelectorAll('input,textarea').forEach(i=>{i.value='';i.readOnly=false;i.tabIndex=0;i.setCustomValidity('');});else row.remove();if(row.isConnected){for(const key of ['barcode4','barcode3'])checkBarcode(row.querySelector('[name='+key+']'),false);row.querySelectorAll('textarea').forEach(fitTextarea);}count();scheduleSave();});const removeCell=row.insertCell();removeCell.className='remove-cell';removeCell.append(b);applyBarcode(row,false);row.querySelectorAll('textarea').forEach(fitTextarea);count();return row;}
+const uoms=document.createElement('datalist');uoms.id='uom-options';TransferRules.uoms.forEach(v=>uoms.append(new Option(v,v)));document.body.append(uoms);
+for(const id of ['add-row','add-row-bottom'])$(id).addEventListener('click',()=>{addRow().querySelector('input').focus();scheduleSave();});
+$('transfer-form').addEventListener('submit',e=>e.preventDefault());$('transfer-form').addEventListener('input',e=>{if(e.target.tagName==='TEXTAREA')fitTextarea(e.target);if(e.target.name==='uom')e.target.setCustomValidity(TransferRules.uoms.includes(e.target.value)?'':'Choose a UOM from the list.');else if(!['from','to'].includes(e.target.id)&&!['barcode4','barcode3'].includes(e.target.name))e.target.setCustomValidity('');scheduleSave();});$('reason').addEventListener('change',scheduleSave);
+function newIdentity(){dirty=false;const now=new Date(),parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now),p=type=>parts.find(v=>v.type===type).value;suffix=' '+p('day')+p('month')+p('year')+'-'+p('hour')+p('minute')+p('second');$('date').value=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);formId=crypto.randomUUID();chooseRoute(selectedRoute);}
+function snapshot(){return{id:formId,updated:new Date().toISOString(),country:$('country').value,from:chosenFrom,to:chosenTo,routeCode:selectedRoute?.code||'',route:selectedRoute,details:selectedRoute?TransferRules.transferDetails(selectedRoute):null,date:$('date').value,reference:$('reference').value,referenceSuffix:suffix,reason:$('reason').value,prepared:$('prepared').value,received:$('received').value,signature,items:[...$('item-rows').rows].map(row=>Object.fromEntries([...row.querySelectorAll('input,textarea')].map(input=>[input.name,input.value.trim()])))};}
+function renderSaved(){$('saved-forms').replaceChildren();if(!savedForms.length){const p=document.createElement('p');p.className='field-help';p.textContent='Your forms will appear here as you work.';$('saved-forms').append(p);}savedForms.forEach(s=>{const b=document.createElement('button');b.type='button';b.className='saved-form'+(s.id===formId?' selected':'');const title=document.createElement('strong');title.textContent=s.reference+(s.version?' · v'+s.version:' · Draft');const branches=document.createElement('span');branches.textContent=(s.from||'Source pending')+' → '+(s.to||'Destination pending');const date=document.createElement('small');date.textContent=s.date+' · '+s.items.length+' item(s)';b.append(title,branches,date);b.addEventListener('click',()=>{saveCurrent();restore(s);});$('saved-forms').append(b);});}
+function saveCurrent(){clearTimeout(saveTimer);if(loading||!routes.length||!dirty)return;const data=snapshot();if(!data.from&&!data.items.some(i=>Object.values(i).some(Boolean)))return;const next=[data,...savedForms.filter(s=>s.id!==formId||s.version)].slice(0,10);try{localStorage.setItem(formsKey,JSON.stringify(next));savedForms=next;dirty=false;renderSaved();$('save-status').textContent='Saved in this browser.';}catch(_){$('save-status').textContent='Could not save. Browser storage may be disabled or full. Download your PDF to keep it.';}}
+function scheduleSave(){if(!loading){dirty=true;clearTimeout(saveTimer);saveTimer=setTimeout(saveCurrent,500);}}
+function restore(s){clearTimeout(saveTimer);loading=true;dirty=false;try{formId=s.version?crypto.randomUUID():s.id;suffix=s.referenceSuffix;$('date').value=s.date;$('country').value=s.country;setCountry();setSource(s.from);chosenTo=destinationBranches.includes(s.to)?s.to:'';$('to').value=chosenTo;$('to').setCustomValidity(chosenTo?'':'Choose a destination branch.');setDestination(s.routeCode);$('reason').value=['Shop Request','Customer Order'].includes(s.reason)?s.reason:'Shop Request';$('prepared').value=s.prepared||'';$('received').value=s.received||'';$('item-rows').replaceChildren();rowSequence=0;(s.items.length?s.items:[{}]).forEach(addRow);signature=Array.isArray(s.signature)?structuredClone(s.signature):[];redrawSignature();remember();renderSaved();if(!selectedRoute)status('This saved route is no longer available. Choose a current route.');}finally{loading=false;}}
+$('new-form').addEventListener('click',()=>{saveCurrent();loading=true;newIdentity();$('reason').value='Shop Request';$('prepared').value='';$('received').value='';$('item-rows').replaceChildren();rowSequence=0;addRow();signature=[];redrawSignature();$('action-status').hidden=true;loading=false;renderSaved();});window.addEventListener('pagehide',saveCurrent);
+const canvas=$('signature'),context=canvas.getContext('2d');
+function redrawSignature(){context.clearRect(0,0,canvas.width,canvas.height);context.strokeStyle='#10485b';context.lineWidth=4;context.lineCap='round';context.lineJoin='round';for(const stroke of signature){if(!stroke.length)continue;context.beginPath();context.moveTo(stroke[0][0]*canvas.width,stroke[0][1]*canvas.height);for(const p of stroke.slice(1))context.lineTo(p[0]*canvas.width,p[1]*canvas.height);context.stroke();}}
+function point(e){const r=canvas.getBoundingClientRect();return[Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))];}
+canvas.addEventListener('pointerdown',e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;canvas.setPointerCapture(pointer);drawing=[point(e)];signature.push(drawing);redrawSignature();});canvas.addEventListener('pointermove',e=>{if(e.pointerId===pointer&&drawing){drawing.push(point(e));redrawSignature();}});function endSignature(e){if(e.pointerId===pointer){if(drawing?.length===1)drawing.push([...drawing[0]]);pointer=null;drawing=null;scheduleSave();}}for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,endSignature);$('clear-signature').addEventListener('click',()=>{signature=[];redrawSignature();scheduleSave();});
+function validate(){if(!selectedRoute){status('Choose a configured transfer route.');return false;}for(const input of $('transfer-form').querySelectorAll('input,textarea')){if(['from','to'].includes(input.id))continue;input.setCustomValidity(input.name==='uom'&&!TransferRules.uoms.includes(input.value)?'Choose a UOM from the list.':input.required&&!input.value.trim()?'Please complete this field.':input.name==='batch'&&input.value&&input.value.length<6?'Batch must contain 6–17 characters.':'');}return $('transfer-form').reportValidity();}
+async function downloadPDF(){if(!validate())return;clearTimeout(saveTimer);const buttons=[$('print-button'),$('print-bottom')];buttons.forEach(b=>b.disabled=true);try{const data=structuredClone(snapshot());data.version=nextVersion(data.reference);data.id=crypto.randomUUID();const bytes=await TransferPDF.createTransferPDF(data),url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),a=document.createElement('a');a.href=url;a.download=data.reference.replace(/[^A-Za-z0-9_-]/g,'_')+'_v'+data.version+'.pdf';document.body.append(a);a.click();a.remove();saveDownload(data);setTimeout(()=>URL.revokeObjectURL(url),60000);status('Version '+data.version+' downloaded. Attach this PDF to your email.');}catch(e){status('PDF could not be created: '+e.message);}finally{buttons.forEach(b=>b.disabled=!selectedRoute);}}
+$('print-button').addEventListener('click',downloadPDF);$('print-bottom').addEventListener('click',downloadPDF);
+function showPage(){const t=location.hash==='#transfer';$('home').hidden=t;$('transfer').hidden=!t;document.title=t?'Transfer request · Chocolala':'Chocolala · Branch Operations';}window.addEventListener('hashchange',showPage);newIdentity();addRow();showPage();
+(async()=>{try{const response=await fetch('TRANSFER_CONF.csv',{cache:'no-store'});if(!response.ok)throw new Error('HTTP '+response.status);const bytes=await response.arrayBuffer();let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch(_){text=new TextDecoder('windows-1252').decode(bytes);}routes=TransferCSV.readRoutes(text);$('country').replaceChildren(new Option('Select country',''));sorted(routes.map(r=>r.country)).forEach(c=>$('country').add(new Option(c,c)));$('country').disabled=false;try{const s=JSON.parse(localStorage.getItem(memoryKey)||'null');if(s&&routes.some(r=>r.country===s.country)){$('country').value=s.country;setCountry();setSource(s.from);chosenTo=destinationBranches.includes(s.to)?s.to:'';$('to').value=chosenTo;$('to').setCustomValidity(chosenTo?'':'Choose a destination branch.');setDestination(s.code);}}catch(_){}try{const saved=JSON.parse(localStorage.getItem(formsKey)||'[]');savedForms=Array.isArray(saved)?saved.filter(s=>s&&typeof s.id==='string'&&typeof s.referenceSuffix==='string'&&Array.isArray(s.items)).slice(0,10):[];}catch(_){savedForms=[];}renderSaved();$('data-status').textContent='Choose branches, enter items, then sign and download. Your branch selections are remembered.';}catch(e){$('data-status').classList.add('error');$('data-status').textContent='Branch data could not be loaded. '+e.message;}})();
+function selectContents(e){const field=e.target;if(field.matches('input,textarea')&&!field.readOnly&&!field.disabled){try{field.select();}catch(_){}}}
+$('transfer-form').addEventListener('focusin',selectContents);
+$('transfer-form').addEventListener('pointerup',selectContents);

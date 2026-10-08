@@ -25,13 +25,13 @@
     const table = parseCSV(text);
     if (!table.length) throw new Error('The branch CSV is empty.');
     const headers = table.shift().map(value => value.trim());
-    const required = ['COUNTRY', 'CODE', 'Name', 'From Warehouse', 'FROM BUSINESS UNIT', 'FROM LEGAL ENTITY', 'To Warehouse', 'To Business Unit', 'TO LEGAL ENTITY'];
+    const required = ['COUNTRY', 'CRITERIA', 'CODE', 'Name', 'From Warehouse', 'FROM BUSINESS UNIT', 'FROM LEGAL ENTITY', 'To Warehouse', 'To Business Unit', 'TO LEGAL ENTITY'];
     for (const name of required) if (!headers.includes(name)) throw new Error('Missing CSV column: ' + name);
     const supplierIndex = headers.includes('SUPPLIER') ? headers.indexOf('SUPPLIER') : headers.findIndex((header, index) => !header && index === 11);
     const routes = table.map((cells, index) => {
       if (cells.length !== headers.length) throw new Error('CSV row ' + (index + 2) + ' has an unexpected number of columns.');
       const get = name => cells[headers.indexOf(name)].trim();
-      const route = { country: get('COUNTRY'), code: get('CODE'), name: get('Name'), from: get('FROM BUSINESS UNIT'), fromWarehouse: get('From Warehouse'), fromEntity: get('FROM LEGAL ENTITY'), to: get('To Business Unit'), toWarehouse: get('To Warehouse'), toEntity: get('TO LEGAL ENTITY'), supplier: supplierIndex >= 0 ? cells[supplierIndex].trim() : '' };
+      const route = { country: get('COUNTRY'), criteria: get('CRITERIA'), code: get('CODE'), name: get('Name'), from: get('FROM BUSINESS UNIT'), fromWarehouse: get('From Warehouse'), fromEntity: get('FROM LEGAL ENTITY'), to: get('To Business Unit'), toWarehouse: get('To Warehouse'), toEntity: get('TO LEGAL ENTITY'), supplier: supplierIndex >= 0 ? cells[supplierIndex].trim() : '' };
       if (!route.country || !route.from || !route.to || !route.code) throw new Error('CSV row ' + (index + 2) + ' is missing route details.');
       return route;
     });
