@@ -6,9 +6,12 @@
   <meta name="description" content="Chocolala branch transfer request forms.">
   <title>Chocolala · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css">
-  <script src="csv.js" defer></script>
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261008">
+  <script src="csv.js?v=20261008" defer></script>
+  <script src="rules.js?v=20261008" defer></script>
+  <script src="vendor/pdf-lib.min.js" defer></script>
+  <script src="pdf.js?v=20261008" defer></script>
+  <script src="app.js?v=20261008" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">C</span><span>CHOCOLALA<small>BRANCH OPERATIONS</small></span></a><span class="header-note">Operations desk</span></header>
@@ -23,33 +26,34 @@
     </section>
     <section id="transfer" hidden>
       <a class="back-link" href="#home">All forms</a>
-      <div class="page-heading"><div><div class="eyebrow">STOCK MOVEMENT</div><h1>Transfer request</h1></div><button id="print-button" type="button" class="primary" disabled>Print / Save PDF</button></div>
+      <div class="page-heading"><div><div class="eyebrow">STOCK MOVEMENT</div><h1>Transfer request</h1></div><button id="print-button" type="button" class="primary" disabled>Download PDF</button></div>
       <p id="data-status" class="notice" role="status">Loading branch routes…</p>
-      <form id="transfer-form">
-        <section class="panel"><div class="panel-title"><span class="step">01</span><h2>Transfer details</h2></div>
-          <div class="field-grid">
+      <div class="entry-legend"><span><i class="editable-key"></i>Blue fields: enter or choose</span><span><i class="automatic-key"></i>Grey fields: filled automatically</span></div><div class="workspace"><div><form id="transfer-form">
+        <section class="panel" id="branches-panel"><div class="panel-title"><span class="step">01</span><h2>Choose the branches</h2></div>
+          <div class="field-grid branch-fields">
             <label>Country<select id="country" required disabled><option value="">Select country</option></select></label>
-            <label>Transfer from<select id="from" required disabled><option value="">Select source branch</option></select></label>
-            <label>Transfer to<select id="to" required disabled><option value="">Select destination</option></select></label>
+            <div class="branch-picker"><label for="from">Transfer from</label><input id="from" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="from-results" autocomplete="off" required disabled placeholder="Search branch name"><div id="from-results" class="branch-results" role="listbox" aria-label="Source branches" hidden></div></div>
+            <div class="branch-picker"><label for="to">Transfer to</label><input id="to" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="to-results" autocomplete="off" required disabled placeholder="Search branch name"><div id="to-results" class="branch-results" role="listbox" aria-label="Destination branches" hidden></div></div>
+          <label>Reason<select id="reason" required><option selected>Shop Request</option><option>Customer Order</option></select></label>
           </div>
-          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div><span>SUPPLIER</span><strong id="supplier"></strong><small id="route-code"></small></div></div>
-          <label id="route-choice-wrap" hidden>Warehouse route<select id="route-choice"></select></label>
-          <div class="field-grid four">
-            <label>Transfer type<select id="type"><option>Internal Transfer</option><option>IC Sales/Purchase</option></select></label>
-            <label>Transfer date<input id="date" type="date" required></label>
-            <label>Reference<input id="reference" required maxlength="80"></label>
-            <label>Supplier code <span class="optional">(if applicable)</span><input id="supplier-code" maxlength="40" placeholder="Enter supplier code"></label>
-          </div>
-          <label>Reason<input id="reason" required maxlength="250" placeholder="e.g. Customer order or stock replenishment"></label>
+          <p id="route-notice" class="field-help" role="status" hidden></p><label id="route-choice-wrap" hidden>Warehouse route<select id="route-choice"></select></label>
         </section>
-        <section class="panel"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Items to transfer</h2></div><button id="add-row" class="secondary" type="button">+ Add item</button></div>
-          <p class="field-help">Enter item details exactly as shown on the product. Quantities must be greater than zero.</p>
-          <div class="table-scroll"><table class="entry-table"><thead><tr><th scope="col">#</th><th scope="col">Item code</th><th scope="col">3 barcode</th><th scope="col">4 barcode</th><th scope="col">Batch</th><th scope="col">Item name</th><th scope="col">UOM</th><th scope="col">Quantity</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead><tbody id="item-rows"></tbody></table></div>
-          <div class="items-footer"><span id="item-count">0 items</span><span>Quantities print to 3 decimal places</span></div>
+        <section class="panel" id="items-panel"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Enter the items</h2></div><button id="add-row" class="secondary" type="button">+ Add item</button></div>
+          <p id="barcode-help" class="field-help">Scan either barcode (13 digits), then press Enter. The item code fills automatically; a 4 barcode also fills the batch. UOM and quantity stay editable.</p>
+          <div class="table-scroll"><table class="entry-table"><thead><tr><th scope="col">#</th><th scope="col">4 barcode</th><th scope="col">Item code</th><th scope="col">3 barcode</th><th scope="col">Batch</th><th scope="col">Item name</th><th scope="col">UOM</th><th scope="col">Quantity</th><th scope="col"><span class="sr-only">Remove</span></th></tr></thead><tbody id="item-rows"></tbody></table></div>
+          <div class="items-footer"><span id="item-count">0 items</span><span>22 items per PDF page</span><button id="add-row-bottom" class="secondary" type="button">+ Add item</button></div>
         </section>
-        <section class="panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><label>Prepared and sent by<input id="prepared" required maxlength="100" placeholder="Your name"></label><label>Received by <span class="optional">(optional)</span><input id="received" maxlength="100" placeholder="Receiver’s name"></label></div><p class="field-help">Signatures can be added to the printed form. Requests are not submitted or stored centrally.</p></section>
+        <section class="panel" id="signature-panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><div><label>Prepared and sent by<input id="prepared" required maxlength="100" placeholder="Your name"></label><div class="signature-label">Signature <span class="optional">(mouse or touch)</span></div><canvas id="signature" width="900" height="300" aria-label="Prepared by signature pad"></canvas><button id="clear-signature" type="button" class="secondary">Clear signature</button></div><label>Received by <span class="optional">(optional)</span><input id="received" maxlength="100" placeholder="Receiver’s name"></label></div><p class="field-help">Download the signed PDF and attach it to your email. The form text remains selectable.</p></section>
       </form>
-      <div class="bottom-actions"><span>Review the details before printing.</span><button id="print-bottom" class="primary" type="button" disabled>Print / Save PDF</button></div>
+      <div class="bottom-actions"><span class="field-help">Sign, then download your PDF.</span><button id="print-bottom" class="primary" type="button" disabled>Download PDF</button></div></div><aside class="automatic-panel"><section class="automatic-details"><h2>Automatic details <small class="auto-badge">Read only</small></h2>          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div id="supplier-details" hidden><span>SUPPLIER</span><strong id="supplier"></strong></div></div>
+          <div class="field-grid four">
+            <label>Transfer type<input id="type" readonly placeholder="Select a route"></label>
+            <label>Transfer date<input id="date" type="date" readonly></label>
+            <label>Reference<input id="reference" readonly></label>
+            <label><span id="code-label">Supplier code / TR code</span><input id="supplier-code" readonly></label>
+          </div>
+</section></aside><aside class="saved-panel"><div class="saved-heading"><h2>Saved versions</h2><button id="new-form" type="button" class="secondary">New form</button></div><p class="field-help">Last 10 versions saved in this browser. Every download creates a new copy.</p><div id="saved-forms"></div><p id="save-status" role="status" class="field-help"></p></aside></div>
+      <p id="action-status" role="status" class="notice" hidden></p>
     </section>
   </main>
   <footer class="site-footer">CHOCOLALA <span>Branch operations</span></footer>

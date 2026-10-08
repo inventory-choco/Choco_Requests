@@ -10,7 +10,7 @@ assert.equal(routes.length, 844);
 assert.deepEqual([...new Set(routes.map(route => route.country))].sort(), ['BAHRAIN', 'OMAN', 'UAE']);
 assert.equal(routes[0].supplier, 'CHOCOLALA FACTORY LLC (ONE PERSON)');
 assert.equal(routes[0].code, '1001');
-assert.equal(readRoutes(text.replace('TO LEGAL ENTITY,', 'TO LEGAL ENTITY,SUPPLIER'))[0].supplier, routes[0].supplier);
+assert.equal(readRoutes(text.replace(/TO LEGAL ENTITY,[^\r\n]*/, 'TO LEGAL ENTITY,'))[0].supplier, routes[0].supplier);
 assert.throws(() => readRoutes(text + '\nUAE,broken'), /unexpected number/);
 assert.throws(() => readRoutes('wrong,headers\nvalue,value'), /Missing CSV column/);
 console.log(`CSV checks passed: ${routes.length} routes, quoted fields, supplier heading fallback, and malformed data validation.`);
