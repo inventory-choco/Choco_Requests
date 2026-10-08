@@ -7,7 +7,8 @@
     return name.trim().replace(/\s*-\s*(?=\d+\s*$)/, ' ').replace(/\s+/g, ' ').toUpperCase();
   }
   function transferDetails(route) {
-    const internal = entityKey(route.fromEntity) === entityKey(route.toEntity);
+    const internal = !!route.fromEntity && !!route.toEntity && entityKey(route.fromEntity) === entityKey(route.toEntity);
+    if(route.detailsMissing) return {internal,type:internal?'Internal Transfer':'Intercompany Sales/Purchase',prefix:internal?'TR':'IC',codeLabel:'Supplier code',code:'',supplier:''};
     return { internal, type: internal ? 'Internal Transfer' : 'Intercompany Sales/Purchase', prefix: internal ? 'TR' : 'IC', codeLabel: internal ? 'TR code' : 'Supplier code', code: internal ? route.code : ((route.supplier || '').match(/(\d+)\s*$/)?.[1] || ''), supplier: internal ? '' : route.supplier };
   }
   function barcodeDetails(value) {
@@ -32,10 +33,13 @@
   function unconfiguredRoute(routes, country, from, to) {
     if (!from || !to || from === to) return null;
     const source=branchProfile(routes,country,from),destination=branchProfile(routes,country,to);
-    if (!source || !destination) return null;
-    return {country,criteria:from+to,from,to,code:'',name:from+' to '+to,fromEntity:source.entity,toEntity:destination.entity,fromWarehouse:source.warehouse,toWarehouse:destination.warehouse,supplier:source.supplier,unconfigured:true};
+    return {country,criteria:from+to,from,to,code:'',name:from+' to '+to,
+      fromEntity:source?.entity||'',toEntity:destination?.entity||'',
+      fromWarehouse:source?.warehouse||'',toWarehouse:destination?.warehouse||'',
+      supplier:source?.supplier||'',unconfigured:true,detailsMissing:true};
   }
-  const api = { branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };
+  function hasSignature(strokes) { return Array.isArray(strokes) && strokes.some(stroke => Array.isArray(stroke) && stroke.some((p,i) => i > 0 && Math.hypot(p[0]-stroke[i-1][0],p[1]-stroke[i-1][1]) > .002)); }
+  const api = { hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TransferRules = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

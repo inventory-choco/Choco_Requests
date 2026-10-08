@@ -1,0 +1,55 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {JSDOM}=require('../tmp/test-runtime/node_modules/jsdom');
+const {readRoutes,parseCSV}=require('../csv.js');
+const {readProducts}=require('../products.js');
+const routes=readRoutes(fs.readFileSync('TRANSFER_CONF.csv','utf8'));
+const catalog=readProducts(fs.readFileSync('products.csv','utf8'),parseCSV);
+assert.equal(catalog.products.get('117588').batched,false);
+assert.equal(catalog.products.get('117474').batched,true);
+assert.ok(catalog.uoms.includes('Packet'));
+assert.ok(catalog.skipped>0);
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://inventory.test/#transfer',runScripts:'outside-only'});
+const w=dom.window,d=w.document;
+w.TextDecoder=TextDecoder;w.structuredClone=structuredClone;
+w.HTMLCanvasElement.prototype.getContext=()=>({clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){}});
+w.HTMLCanvasElement.prototype.setPointerCapture=()=>{};
+w.HTMLCanvasElement.prototype.getBoundingClientRect=()=>({left:0,top:0,width:900,height:300});
+w.fetch=async url=>{const bytes=fs.readFileSync(url);return{ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};};
+for(const file of ['csv.js','rules.js','products.js','language.js','app.js'])w.eval(fs.readFileSync(file,'utf8')+(file==='app.js'?'\nwindow.InventoryTestHooks={snapshot,restore,validate};':''));
+function input(name,value,row=0){const field=d.querySelectorAll('#item-rows tr')[row].querySelector('[name='+name+']');field.value=value;field.dispatchEvent(new w.Event('input',{bubbles:true}));return field;}
+function field(name,row=0){return d.querySelectorAll('#item-rows tr')[row].querySelector('[name='+name+']');}
+(async()=>{try{
+ await new Promise(setImmediate);
+ const source=routes.find(r=>r.code==='1718').from,target=routes.find(r=>r.code==='1125').from;
+ d.getElementById('country').value='UAE';d.getElementById('country').dispatchEvent(new w.Event('change'));
+ const from=d.getElementById('from');from.value=source;from.dispatchEvent(new w.Event('input'));
+ const to=d.getElementById('to');to.value=target;to.dispatchEvent(new w.Event('input'));
+ assert.equal(d.getElementById('print-button').disabled,false,'missing pair permits a form');
+ assert.equal(d.getElementById('route-notice').hidden,true,'missing-pair warning removed');
+ assert.equal(d.getElementById('route-details').hidden,true,'missing details hidden');
+ assert.equal(d.getElementById('type').readOnly,true);
+ input('code','117588');
+ assert.equal(field('name').value,'ROASTED BEANS COLOMBIA');assert.equal(field('uom').value,'Kilogram');
+ assert.equal(field('batch').readOnly,true);assert.equal(field('batch').required,false);
+ assert.equal(d.querySelectorAll('#item-rows tr').length,2,'next row appears without button');
+ input('quantity','2');assert.equal(w.InventoryTestHooks.snapshot().items.length,1,'blank next row excluded');
+ input('code','117474');assert.equal(field('batch').required,true);assert.equal(field('batch').readOnly,false);
+ d.getElementById('prepared').value='TEST PREPARER';assert.equal(w.InventoryTestHooks.validate(),false,'missing required batch blocks');
+ input('batch','ABC123');assert.equal(w.InventoryTestHooks.validate(),false,'missing signature blocks');
+ assert.equal(d.getElementById('signature-error').hidden,false);
+ const canvas=d.getElementById('signature');
+ for(const [type,x,y]of [['pointerdown',90,40],['pointermove',220,110],['pointerup',220,110]]){const event=new w.MouseEvent(type,{clientX:x,clientY:y});Object.defineProperty(event,'pointerId',{value:1});canvas.dispatchEvent(event);}
+ assert.equal(w.InventoryTestHooks.validate(),true,'signed valid item passes with empty spare row');
+ input('code','999999');assert.equal(field('name').value,'');assert.equal(field('uom').value,'');assert.equal(field('batch').required,false);assert.equal(field('batch').readOnly,false);
+ input('barcode3','3117474148970');assert.equal(field('code').value,'117474');assert.equal(field('code').readOnly,true);assert.equal(field('barcode4').readOnly,true);assert.equal(field('batch').readOnly,false,'catalog batched product permits batch after 3 barcode');
+ input('barcode3','');input('barcode4','4117588148970');assert.equal(field('code').value,'117588');assert.equal(field('batch').readOnly,true);assert.equal(field('batch').value,'','non-batched item discards scanned batch');assert.equal(field('uom').value,'Kilogram');
+ const before=w.InventoryTestHooks.snapshot();d.getElementById('language').value='ar';d.getElementById('language').dispatchEvent(new w.Event('change'));
+ assert.equal(d.documentElement.lang,'ar');assert.equal(d.querySelector('label[for=from]').textContent,'التحويل من');
+ assert.equal(field('name').value,before.items[0].name,'language preserves input data');assert.equal(from.value,source);
+ d.getElementById('language').value='en';d.getElementById('language').dispatchEvent(new w.Event('change'));
+ assert.equal(d.querySelector('label[for=from]').textContent,'Transfer from');
+ const saved=w.InventoryTestHooks.snapshot();w.InventoryTestHooks.restore(saved);assert.equal(field('code').value,'117588');assert.equal(field('batch').readOnly,true);assert.equal(w.InventoryTestHooks.snapshot().items.length,1);assert.equal(w.InventoryTestHooks.validate(),true,'restore keeps signature and catalog locks');
+ console.log('Inventory DOM tests passed: country-wide choices, missing pairs, product lookup, batch rules, automatic rows, required signatures, languages and restore.');
+ }finally{w.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});
