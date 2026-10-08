@@ -31,3 +31,7 @@
 
 .brand{letter-spacing:.7px;font-size:16px}.brand small{letter-spacing:1px}.language-control{flex-shrink:0}
 @media(max-width:600px){.site-header{flex-wrap:wrap;gap:12px}.language-control{width:100%;justify-content:space-between}.language-control select{width:130px}.brand{max-width:100%;font-size:16px}.brand small{font-size:9px}.entry-legend{gap:8px}.entry-legend span{font-size:11px}}
+
+/* Unified barcode entry; PDF layout is maintained separately in pdf.js. */
+.entry-table tr{grid-template-columns:24px minmax(125px,1.3fr) minmax(70px,.75fr) minmax(100px,1fr) minmax(140px,2fr) minmax(85px,.9fr) minmax(70px,.7fr) 26px}.entry-table td:nth-child(n){grid-column:auto}.entry-table input[name=barcode]{font-variant-numeric:tabular-nums}
+@media(max-width:800px){.entry-table tr{grid-template-columns:repeat(12,minmax(0,1fr))}.entry-table td:first-child{grid-column:1/-1}.entry-table td:nth-child(2),.entry-table td:nth-child(3),.entry-table td:nth-child(4){grid-column:span 6}.entry-table td:nth-child(5){grid-column:span 12}.entry-table td:nth-child(6){grid-column:span 6}.entry-table td:nth-child(7){grid-column:span 5}.entry-table td:last-child{grid-column:span 1}}

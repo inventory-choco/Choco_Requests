@@ -43,9 +43,11 @@ assert.equal(branchMatches('Chocolala Barsha Mall','barsha zay'),false);
 
 const hamra=unconfiguredRoute(routes,'UAE',routes.find(r=>r.code==='1718').from,internal.from);
 assert.ok(hamra);assert.equal(hamra.code,'');assert.equal(transferDetails(hamra).type,'Intercompany Sales/Purchase');
-assert.equal(transferDetails(hamra).code,'');assert.equal(hamra.detailsMissing,true);
+assert.equal(transferDetails(hamra).code,'46697');assert.equal(hamra.detailsMissing,false);
 assert.equal(unconfiguredRoute(routes,'UAE','Chocola Pure Al Hamra','Chocola Pure Al Hamra'),null);
 const conflict=[{country:'UAE',from:'A',fromEntity:'Company A',fromWarehouse:'A WH',to:'B',toEntity:'Company B',toWarehouse:'B WH'},{country:'UAE',from:'A',fromEntity:'Company C',fromWarehouse:'A WH',to:'C',toEntity:'Company C',toWarehouse:'C WH'}];
 assert.ok(unconfiguredRoute(conflict,'UAE','A','B'));assert.equal(unconfiguredRoute(conflict,'UAE','A','B').detailsMissing,true);
 
 assert.equal(hasSignature([]),false);assert.equal(hasSignature([[[.2,.2],[.2,.2]]]),false);assert.equal(hasSignature([[[.2,.2],[.3,.4]]]),true);
+
+const exactExample=unconfiguredRoute(routes,'UAE','216 - Chocola Pure Al Hamra','249 - Chocolala Al Ain- 2');assert.match(exactExample.fromEntity,/46697/);assert.match(exactExample.toEntity,/643223/);assert.equal(transferDetails(exactExample).type,'Intercompany Sales/Purchase');
