@@ -6,7 +6,7 @@
   'Select a request to begin.':'اختر طلباً للبدء.','Transfer':'تحويل','Sample / Consumption':'عينات / استهلاك','Damages / Expiry':'تلف / انتهاء الصلاحية',
   'Create transfer':'إنشاء تحويل','Coming later':'قريباً','All forms':'جميع النماذج','STOCK MOVEMENT':'حركة المخزون','Transfer request':'طلب تحويل',
   'Download PDF':'تنزيل PDF','Choose the branches':'اختر الفروع','Country':'الدولة','Transfer from':'التحويل من','Transfer to':'التحويل إلى','Reason':'السبب',
-  'Warehouse route':'مسار المستودع','Enter the items':'أدخل الأصناف','+ Add item':'+ إضافة صنف','Barcode':'الباركود','4 barcode':'باركود 4','3 barcode':'باركود 3',
+  'Warehouse route':'مسار المستودع','Enter the items':'أدخل الأصناف','+ Add item':'+ إضافة صنف','Download Excel':'تنزيل إكسل','Barcode':'الباركود','4 barcode':'باركود 4','3 barcode':'باركود 3',
   'Item code':'رمز الصنف','Batch':'الدفعة','Item name':'اسم الصنف','UOM':'وحدة القياس','Quantity':'الكمية','Remove':'حذف',
   'Prepared & received':'الإعداد والاستلام','Prepared and sent by':'أعده وأرسله','Received by':'المستلم','Signature':'التوقيع','Required':'مطلوب',
   '(mouse or touch)':'(بالفأرة أو اللمس)','(optional)':'(اختياري)','Clear signature':'مسح التوقيع','Automatic details':'البيانات التلقائية','Read only':'للقراءة فقط',

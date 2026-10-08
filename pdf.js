@@ -39,7 +39,7 @@
    const top=y-5;for(const stroke of data.signature||[])for(let i=1;i<stroke.length;i++)page.drawLine({start:{x:28+stroke[i-1][0]*230,y:top-stroke[i-1][1]*48},end:{x:28+stroke[i][0]*230,y:top-stroke[i][1]*48},thickness:1,color:teal});
    page.drawLine({start:{x:28,y:top-50},end:{x:270,y:top-50},thickness:.5,color:black});page.drawLine({start:{x:350,y:top-50},end:{x:567,y:top-50},thickness:.5,color:black});
    text(`${h('Page')} ${pageIndex+1} ${h('of')} ${chunks.length} | ${h('Items')} ${pageIndex*22+1}-${pageIndex*22+items.length}`,28,24,8);
-  });doc.setTitle('Inventory Department Transfer '+data.reference);return doc.save();
+  });doc.setTitle('Inventory Department Transfer '+data.reference);const excel=root.TransferExcel||(typeof module!=='undefined'&&module.exports?require('./excel.js'):null);if(excel)await doc.attach(excel.createWorkbook(data),'Items.xlsx',{mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',description:'Transfer items in separate Excel rows and columns'});return doc.save();
  }
  const api={createTransferPDF};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TransferPDF=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
