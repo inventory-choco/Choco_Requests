@@ -6,15 +6,17 @@
   <meta name="description" content="Inventory Department branch transfer request forms.">
   <title>Inventory Department · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css?v=20261008e">
-  <script src="csv.js?v=20261008e" defer></script>
-  <script src="rules.js?v=20261008e" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261010a">
+  <script src="csv.js?v=20261010a" defer></script>
+  <script src="rules.js?v=20261010a" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
-  <script src="excel.js?v=20261008e" defer></script>
-  <script src="pdf.js?v=20261008e" defer></script>
-  <script src="products.js?v=20261008e" defer></script>
-  <script src="language.js?v=20261008e" defer></script>
-  <script src="app.js?v=20261008e" defer></script>
+  <script src="excel.js?v=20261010a" defer></script>
+  <script src="pdf.js?v=20261010a" defer></script>
+  <script src="products.js?v=20261010a" defer></script>
+  <script src="language.js?v=20261010a" defer></script>
+  <script src="consumption-pdf.js?v=20261010a" defer></script>
+  <script src="app.js?v=20261010a" defer></script>
+  <script src="consumption.js?v=20261010a" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">ID</span><span>Inventory Department<small>BRANCH OPERATIONS</small></span></a><label class="language-control"><span>Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ar">العربية</option></select></label></header>
@@ -23,7 +25,7 @@
       <div class="eyebrow">BRANCH FORMS</div><h1>What would you like to prepare?</h1><p class="intro">Select a request to begin.</p>
       <div class="menu-grid">
         <a class="menu-card active-card" href="#transfer"><span class="card-number">01 / STOCK MOVEMENT</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 15h30m-8-8 8 8-8 8M40 33H10m8-8-8 8 8 8"/></svg><h2>Transfer</h2><p>Prepare a transfer between branches and warehouses.</p><span class="card-action">Create transfer</span></a>
-        <div class="menu-card unavailable"><span class="card-number">02 / INTERNAL USE</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 9h24v30H12zM18 17h12m-12 7h12m-12 7h7"/></svg><h2>Sample / Consumption</h2><p>Record samples and items used within the branch.</p><span class="badge">Coming later</span></div>
+        <a class="menu-card active-card" href="#consumption"><span class="card-number">02 / INTERNAL USE</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 9h24v30H12zM18 17h12m-12 7h12m-12 7h7"/></svg><h2>Sample / Consumption</h2><p>Record samples and items used within the branch.</p><span class="card-action">Create report</span></a>
         <div class="menu-card unavailable"><span class="card-number">03 / STOCK ADJUSTMENT</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 7 43 40H5L24 7zm0 12v11m0 4v2"/></svg><h2>Damages / Expiry</h2><p>Record damaged and expired items.</p><span class="badge">Coming later</span></div>
       </div><p class="home-foot">One place for your branch forms.</p>
     </section>
@@ -57,6 +59,18 @@
           </div>
 </section></aside><aside class="saved-panel"><div class="saved-heading"><h2>Saved versions</h2><button id="new-form" type="button" class="secondary">New form</button></div><p class="field-help">Last 10 versions saved in this browser. Every download creates a new copy.</p><div id="saved-forms"></div><p id="save-status" role="status" class="field-help"></p></aside></div>
       <p id="action-status" role="status" class="notice" hidden></p>
+    </section>
+
+    <section id="consumption" hidden>
+      <a class="back-link" href="#home">All forms</a><div class="page-heading"><div><div class="eyebrow">INTERNAL USE</div><h1>Sample / Consumption</h1></div><button id="sc-pdf" class="primary" type="button">Download PDF</button></div>
+      <p id="sc-status" class="notice" role="status">Choose your branch, enter items used, then sign and download.</p>
+      <div class="entry-legend"><span><i class="editable-key"></i>Blue fields: enter or choose</span><span><i class="automatic-key"></i>Grey fields: filled automatically</span></div>
+      <div class="sc-workspace"><form id="sc-form">
+        <section class="panel"><div class="panel-title"><span class="step">01</span><h2>Choose your branch</h2></div><div class="field-grid two"><label>Country<select id="sc-country" required disabled><option value="">Select country</option></select></label><div class="branch-picker"><label for="sc-branch">Branch</label><input id="sc-branch" required disabled autocomplete="off" placeholder="Search branch name" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sc-results"><div id="sc-results" class="branch-results" role="listbox" hidden></div></div><label>From date<input id="sc-start" type="date" required></label><label>To date<input id="sc-end" type="date" required></label></div></section>
+        <section class="panel sc-items"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Enter the items</h2></div><button id="sc-add" class="secondary" type="button">+ Add item</button></div><p class="field-help">Scan a barcode or enter an item code. Product name and unit fill automatically. Choose a reason for each item.</p><div class="table-scroll"><table class="entry-table sc-table"><tbody id="sc-rows"></tbody></table></div><div class="items-footer"><span>22 items per PDF page</span><button id="sc-add-bottom" class="secondary" type="button">+ Add item</button></div></section>
+        <section class="panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><label>Prepared and sent by<input id="sc-prepared" required maxlength="100"></label><label>Received by <span class="optional">(optional)</span><input id="sc-received" maxlength="100"></label></div><div class="signature-label">Signature <span class="required-badge">Required</span></div><canvas id="sc-signature" width="900" height="300" tabindex="0" aria-label="Consumption signature pad"></canvas><button id="sc-clear" class="secondary" type="button">Clear signature</button></section>
+        <div class="bottom-actions"><button id="sc-excel" class="secondary" type="button">Download Excel</button><button id="sc-pdf-bottom" class="primary" type="button">Download PDF</button></div>
+      </form><div class="sc-sidebar"><aside class="automatic-panel"><h2>Automatic details <small class="auto-badge">Read only</small></h2><label>Reference<input id="sc-reference" readonly></label><div class="route-details"><div><span>LEGAL ENTITY</span><strong id="sc-entity"></strong><small id="sc-warehouse"></small></div></div></aside><aside class="saved-panel"><div class="saved-heading"><h2>Saved versions</h2><button id="sc-new" class="secondary" type="button">New form</button></div><p class="field-help">Last 10 versions saved in this browser. Every download creates a new copy.</p><div id="sc-saved"></div></aside></div></div>
     </section>
   </main>
   <footer class="site-footer">Inventory Department <span>Branch operations</span></footer>
