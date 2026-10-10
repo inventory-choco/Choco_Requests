@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  const arabic={
-  'INTERNAL USE':'الاستخدام الداخلي','Create report':'إنشاء تقرير','Choose your branch':'اختر فرعك','Branch':'الفرع','From date':'من تاريخ','To date':'إلى تاريخ','Qty used':'الكمية المستخدمة','BRANCH SAMPLE / CONSUMPTION REPORT':'تقرير العينات والاستهلاك للفرع','Transaction Num':'رقم المعاملة','BATCH BARCODE':'باركود الدفعة','QTY USED':'الكمية المستخدمة','UNIT':'الوحدة','Inventory Department':'قسم المخزون','BRANCH OPERATIONS':'عمليات الفروع','Branch operations':'عمليات الفروع',
+  'SR Num':'الرقم التسلسلي','INTERNAL USE':'الاستخدام الداخلي','Create report':'إنشاء تقرير','Choose your branch':'اختر فرعك','Branch':'الفرع','From date':'من تاريخ','To date':'إلى تاريخ','Qty used':'الكمية المستخدمة','BRANCH SAMPLE / CONSUMPTION REPORT':'تقرير العينات والاستهلاك للفرع','Transaction Num':'رقم المعاملة','BATCH BARCODE':'باركود الدفعة','QTY USED':'الكمية المستخدمة','UNIT':'الوحدة','Inventory Department':'قسم المخزون','BRANCH OPERATIONS':'عمليات الفروع','Branch operations':'عمليات الفروع',
   'Language':'اللغة','BRANCH FORMS':'نماذج الفروع','What would you like to prepare?':'ما النموذج الذي ترغب في إعداده؟',
   'Select a request to begin.':'اختر طلباً للبدء.','Transfer':'تحويل','Sample / Consumption':'عينات / استهلاك','Damages / Expiry':'تلف / انتهاء الصلاحية',
   'Create transfer':'إنشاء تحويل','Coming later':'قريباً','All forms':'جميع النماذج','STOCK MOVEMENT':'حركة المخزون','Transfer request':'طلب تحويل',

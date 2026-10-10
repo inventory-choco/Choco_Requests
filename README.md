@@ -63,3 +63,5 @@ PDFs include an Items.xlsx attachment containing item rows and transfer metadata
 
 ## Sample / Consumption
 Open #consumption to record internal branch use. Select one branch from the same country-wide CSV, choose a date range, and record Sample or Consumption per item. Shared products, UPCs and batch rules apply. A 3-barcode or UPC for a batched product requires a batch value; the report uses the scanned barcode when supplied, otherwise the manually entered batch. PDFs use six columns: ITEM CODE, BATCH BARCODE, ITEM NAME, QTY USED, UNIT, Reason, 22 items per page, signed and with embedded Items.xlsx. Excel export uses the same six columns. The module remembers its own branch and last 10 drafts/downloads locally, separately from Transfer.
+
+Consumption PDF and Excel include SR Num as the first column, continuing over all pages. Both modules validate all required fields and every populated item row on each PDF/Excel download attempt. Invalid controls are highlighted with inline messages and a summary; a missing signature is shown alongside field errors. Blank spare rows are excluded, while a completely empty report highlights the first item row.

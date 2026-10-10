@@ -16,7 +16,7 @@ w.HTMLCanvasElement.prototype.getContext=()=>({clearRect(){},beginPath(){},moveT
 w.HTMLCanvasElement.prototype.setPointerCapture=()=>{};
 w.HTMLCanvasElement.prototype.getBoundingClientRect=()=>({left:0,top:0,width:900,height:300});
 w.fetch=async url=>{const bytes=fs.readFileSync(url);return{ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};};
-for(const file of ['csv.js','rules.js','products.js','language.js','app.js'])w.eval(fs.readFileSync(file,'utf8')+(file==='app.js'?'\nwindow.InventoryTestHooks={snapshot,restore,validate};':''));
+for(const file of ['csv.js','rules.js','products.js','language.js','validation.js','app.js'])w.eval(fs.readFileSync(file,'utf8')+(file==='app.js'?'\nwindow.InventoryTestHooks={snapshot,restore,validate};':''));
 function input(name,value,row=0){const field=d.querySelectorAll('#item-rows tr')[row].querySelector('[name='+name+']');field.value=value;field.dispatchEvent(new w.Event('input',{bubbles:true}));return field;}
 function field(name,row=0){return d.querySelectorAll('#item-rows tr')[row].querySelector('[name='+name+']');}
 (async()=>{try{
@@ -29,6 +29,7 @@ function field(name,row=0){return d.querySelectorAll('#item-rows tr')[row].query
  assert.equal(d.getElementById('route-notice').hidden,true,'missing-pair warning removed');
  assert.equal(d.getElementById('route-details').hidden,false,'branch records supply details without a configured pair');assert.match(d.getElementById('from-entity').textContent,/46697/);assert.match(d.getElementById('to-entity').textContent,/643223/);
  assert.equal(d.getElementById('type').readOnly,true);
+ d.getElementById('print-button').click();for(const name of ['code','name','uom','quantity'])assert.ok(field(name).classList.contains('validation-invalid'),'empty '+name+' highlighted together');assert.ok(d.getElementById('prepared').classList.contains('validation-invalid'));assert.equal(d.getElementById('signature-error').hidden,false);d.getElementById('print-button').click();assert.equal(d.querySelectorAll('.validation-error').length,5,'repeated clicks do not duplicate error messages');
  input('code','117588');
  assert.equal(field('name').value,'ROASTED BEANS COLOMBIA');assert.equal(field('uom').value,'Kilogram');
  assert.equal(field('batch').readOnly,true);assert.equal(field('batch').required,false);
