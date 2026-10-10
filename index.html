@@ -6,17 +6,18 @@
   <meta name="description" content="Inventory Department branch transfer request forms.">
   <title>Inventory Department · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css?v=20261010a">
-  <script src="csv.js?v=20261010a" defer></script>
-  <script src="rules.js?v=20261010a" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261010b">
+  <script src="csv.js?v=20261010b" defer></script>
+  <script src="rules.js?v=20261010b" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
-  <script src="excel.js?v=20261010a" defer></script>
-  <script src="pdf.js?v=20261010a" defer></script>
-  <script src="products.js?v=20261010a" defer></script>
-  <script src="language.js?v=20261010a" defer></script>
-  <script src="consumption-pdf.js?v=20261010a" defer></script>
-  <script src="app.js?v=20261010a" defer></script>
-  <script src="consumption.js?v=20261010a" defer></script>
+  <script src="excel.js?v=20261010b" defer></script>
+  <script src="pdf.js?v=20261010b" defer></script>
+  <script src="products.js?v=20261010b" defer></script>
+  <script src="language.js?v=20261010b" defer></script>
+  <script src="consumption-pdf.js?v=20261010b" defer></script>
+  <script src="validation.js?v=20261010b" defer></script>
+  <script src="app.js?v=20261010b" defer></script>
+  <script src="consumption.js?v=20261010b" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">ID</span><span>Inventory Department<small>BRANCH OPERATIONS</small></span></a><label class="language-control"><span>Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ar">العربية</option></select></label></header>
@@ -31,7 +32,7 @@
     </section>
     <section id="transfer" hidden>
       <a class="back-link" href="#home">All forms</a>
-      <div class="page-heading"><div><div class="eyebrow">STOCK MOVEMENT</div><h1>Transfer request</h1></div><button id="print-button" type="button" class="primary" disabled>Download PDF</button></div>
+      <div class="page-heading"><div><div class="eyebrow">STOCK MOVEMENT</div><h1>Transfer request</h1></div><button id="print-button" type="button" class="primary">Download PDF</button></div>
       <p id="data-status" class="notice" role="status">Loading branch routes…</p>
       <div class="entry-legend"><span><i class="editable-key"></i>Blue fields: enter or choose</span><span><i class="automatic-key"></i>Grey fields: filled automatically</span></div><div class="workspace"><div><form id="transfer-form">
         <section class="panel" id="branches-panel"><div class="panel-title"><span class="step">01</span><h2>Choose the branches</h2></div>
@@ -50,7 +51,7 @@
         </section>
         <section class="panel" id="signature-panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><div><label>Prepared and sent by<input id="prepared" required maxlength="100" placeholder="Your name"></label><div class="signature-label">Signature <span class="required-badge">Required</span> <span class="optional">(mouse or touch)</span></div><canvas id="signature" width="900" height="300" aria-label="Prepared by signature pad" tabindex="0"></canvas><p id="signature-error" class="field-error" role="alert" hidden>Signature required before download.</p><button id="clear-signature" type="button" class="secondary">Clear signature</button></div><label>Received by <span class="optional">(optional)</span><input id="received" maxlength="100" placeholder="Receiver’s name"></label></div><p class="field-help">Download the signed PDF and attach it to your email. The form text remains selectable. For Excel columns, use Download Excel or extract the Items.xlsx attachment from the PDF.</p></section>
       </form>
-      <div class="bottom-actions"><span class="field-help">Sign, then download your PDF.</span><button id="excel-download" class="secondary" type="button">Download Excel</button><button id="print-bottom" class="primary" type="button" disabled>Download PDF</button></div></div><aside class="automatic-panel"><section class="automatic-details"><h2>Automatic details <small class="auto-badge">Read only</small></h2>          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div id="supplier-details" hidden><span>SUPPLIER</span><strong id="supplier"></strong></div></div>
+      <div class="bottom-actions"><span class="field-help">Sign, then download your PDF.</span><button id="excel-download" class="secondary" type="button">Download Excel</button><button id="print-bottom" class="primary" type="button">Download PDF</button></div></div><aside class="automatic-panel"><section class="automatic-details"><h2>Automatic details <small class="auto-badge">Read only</small></h2>          <div id="route-details" class="route-details" hidden><div><span>FROM LEGAL ENTITY</span><strong id="from-entity"></strong><small id="from-warehouse"></small></div><div><span>TO LEGAL ENTITY</span><strong id="to-entity"></strong><small id="to-warehouse"></small></div><div id="supplier-details" hidden><span>SUPPLIER</span><strong id="supplier"></strong></div></div>
           <div class="field-grid four">
             <label>Transfer type<input id="type" readonly placeholder="Select a route"></label>
             <label>Transfer date<input id="date" type="date" readonly></label>
