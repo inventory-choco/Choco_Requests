@@ -1,7 +1,7 @@
 (function(root){
  'use strict';
  const arabic={
-  'Inventory Department':'قسم المخزون','BRANCH OPERATIONS':'عمليات الفروع','Branch operations':'عمليات الفروع',
+  'INTERNAL USE':'الاستخدام الداخلي','Create report':'إنشاء تقرير','Choose your branch':'اختر فرعك','Branch':'الفرع','From date':'من تاريخ','To date':'إلى تاريخ','Qty used':'الكمية المستخدمة','BRANCH SAMPLE / CONSUMPTION REPORT':'تقرير العينات والاستهلاك للفرع','Transaction Num':'رقم المعاملة','BATCH BARCODE':'باركود الدفعة','QTY USED':'الكمية المستخدمة','UNIT':'الوحدة','Inventory Department':'قسم المخزون','BRANCH OPERATIONS':'عمليات الفروع','Branch operations':'عمليات الفروع',
   'Language':'اللغة','BRANCH FORMS':'نماذج الفروع','What would you like to prepare?':'ما النموذج الذي ترغب في إعداده؟',
   'Select a request to begin.':'اختر طلباً للبدء.','Transfer':'تحويل','Sample / Consumption':'عينات / استهلاك','Damages / Expiry':'تلف / انتهاء الصلاحية',
   'Create transfer':'إنشاء تحويل','Coming later':'قريباً','All forms':'جميع النماذج','STOCK MOVEMENT':'حركة المخزون','Transfer request':'طلب تحويل',
@@ -32,6 +32,7 @@
    const source=original.get(node),trimmed=source.trim();if(arabic[trimmed])node.textContent=source.replace(trimmed,header(trimmed,lang));
   }
   (scope||document).querySelectorAll('#item-rows td[data-label]').forEach(cell=>{const key=cell.querySelector('input,textarea')?.name,labels={barcode:'Barcode',barcode4:'4 barcode',barcode3:'3 barcode',code:'Item code',batch:'Batch',name:'Item name',uom:'UOM',quantity:'Quantity'};if(labels[key])cell.dataset.label=header(labels[key],lang);});
+  document.querySelectorAll('#sc-rows td').forEach(cell=>{const f=cell.querySelector('input,textarea,select'),labels={barcode:'Barcode',code:'Item code',batch:'Batch',name:'Item name',uom:'UOM',quantity:'Qty used',reason:'Reason'};if(f&&labels[f.name])cell.dataset.label=header(labels[f.name],lang);});
   const code=document.getElementById('code-label');if(code){const english=code.dataset.english||'Supplier code / TR code';code.textContent=header(english,lang);}
  }
  const api={header,language,apply};if(typeof module!=='undefined'&&module.exports)module.exports=api;else{
