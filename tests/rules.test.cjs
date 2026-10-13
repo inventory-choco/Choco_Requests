@@ -51,3 +51,5 @@ assert.ok(unconfiguredRoute(conflict,'UAE','A','B'));assert.equal(unconfiguredRo
 assert.equal(hasSignature([]),false);assert.equal(hasSignature([[[.2,.2],[.2,.2]]]),false);assert.equal(hasSignature([[[.2,.2],[.3,.4]]]),true);
 
 const exactExample=unconfiguredRoute(routes,'UAE','216 - Chocola Pure Al Hamra','249 - Chocolala Al Ain- 2');assert.match(exactExample.fromEntity,/46697/);assert.match(exactExample.toEntity,/643223/);assert.equal(transferDetails(exactExample).type,'Intercompany Sales/Purchase');
+
+assert.equal(require('../rules').formatDate('2026-10-13'),'13-Oct-2026');assert.equal(require('../rules').formatDate('2026-01-01'),'01-Jan-2026');assert.equal(require('../rules').formatDate(''),'');

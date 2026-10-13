@@ -38,7 +38,8 @@
       supplier:source?.supplier||'',unconfigured:true,detailsMissing:!source?.entity||!destination?.entity};
   }
   function hasSignature(strokes) { return Array.isArray(strokes) && strokes.some(stroke => Array.isArray(stroke) && stroke.some((p,i) => i > 0 && Math.hypot(p[0]-stroke[i-1][0],p[1]-stroke[i-1][1]) > .002)); }
-  const api = { hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };
+  function formatDate(value){const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));if(!match)return value||'';const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return match[3]+'-'+(months[Number(match[2])-1]||match[2])+'-'+match[1];}
+  const api = {formatDate, hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TransferRules = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -6,25 +6,25 @@
   <meta name="description" content="Inventory Department branch transfer request forms.">
   <title>Inventory Department · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css?v=20261013c">
-  <script src="csv.js?v=20261013c" defer></script>
-  <script src="rules.js?v=20261013c" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261013d">
+  <script src="csv.js?v=20261013d" defer></script>
+  <script src="rules.js?v=20261013d" defer></script>
   <script src="vendor/pdf-lib.min.js" defer></script>
-  <script src="excel.js?v=20261013c" defer></script>
-  <script src="pdf.js?v=20261013c" defer></script>
-  <script src="products.js?v=20261013c" defer></script>
-  <script src="language.js?v=20261013c" defer></script>
-  <script src="consumption-pdf.js?v=20261013c" defer></script>
-  <script src="validation.js?v=20261013c" defer></script>
-  <script src="app.js?v=20261013c" defer></script>
-  <script src="consumption.js?v=20261013c" defer></script>
-  <script src="stock-rules.js?v=20261013c" defer></script>
-  <script src="stock-pdf.js?v=20261013c" defer></script>
-  <script src="stock.js?v=20261013c" defer></script>
-  <script src="updates.js?v=20261013c" defer></script>
-  <script src="order-images.js?v=20261013c" defer></script>
-  <script src="order-pdf.js?v=20261013c" defer></script>
-  <script src="order.js?v=20261013c" defer></script>
+  <script src="excel.js?v=20261013d" defer></script>
+  <script src="pdf.js?v=20261013d" defer></script>
+  <script src="products.js?v=20261013d" defer></script>
+  <script src="language.js?v=20261013d" defer></script>
+  <script src="consumption-pdf.js?v=20261013d" defer></script>
+  <script src="validation.js?v=20261013d" defer></script>
+  <script src="app.js?v=20261013d" defer></script>
+  <script src="consumption.js?v=20261013d" defer></script>
+  <script src="stock-rules.js?v=20261013d" defer></script>
+  <script src="stock-pdf.js?v=20261013d" defer></script>
+  <script src="stock.js?v=20261013d" defer></script>
+  <script src="updates.js?v=20261013d" defer></script>
+  <script src="order-images.js?v=20261013d" defer></script>
+  <script src="order-pdf.js?v=20261013d" defer></script>
+  <script src="order.js?v=20261013d" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">ID</span><span>Inventory Department<small>BRANCH OPERATIONS</small></span></a><nav class="top-nav" aria-label="Request forms"><a href="#transfer">Transfer</a><a href="#consumption">Sample / Consumption / Damage / Expiry</a><a href="#stock">Stock Adjustment</a><a href="#order">Store/Factory Request</a></nav><label class="language-control"><span>Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ar">العربية</option></select></label></header>
@@ -97,8 +97,8 @@
       <p id="of-status" class="notice" role="status">Choose your branch and delivery details, add requested items and photos, then sign and download.</p>
       <div class="entry-legend"><span><i class="editable-key"></i>Blue fields: enter or choose</span><span><i class="automatic-key"></i>Grey fields: filled automatically</span></div>
       <div class="sc-workspace order-workspace"><form id="of-form">
-        <section class="panel"><div class="panel-title"><span class="step">01</span><h2>Choose your branch</h2></div><div class="field-grid two"><label>Country<select id="of-country" required disabled><option value="">Select country</option></select></label><div class="branch-picker"><label for="of-branch">Branch</label><input id="of-branch" required disabled autocomplete="off" placeholder="Search branch name" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="of-results"><div id="of-results" class="branch-results" role="listbox" hidden></div></div><label>Order date<input id="of-start" type="date" required></label><label>Delivery date<input id="of-end" type="date" required></label><label>Request to<select id="of-requestTo"><option>Store</option><option>Factory</option></select></label><label>Order type<select id="of-orderType"><option>Shop Request</option><option>Customer Order</option><option>Sample</option></select></label><label>Priority<select id="of-priority"><option>Normal</option><option>Urgent</option></select></label><label>Delivery run<select id="of-run"><option>First Car</option><option>Second Car</option><option>Third Car</option><option>Collection</option></select></label><label>Delivery time <span class="optional">(optional)</span><input id="of-time" type="time"></label><label>Delivery location<input id="of-location" maxlength="150" required></label></div></section>
-        <section class="panel sc-items"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Enter the items</h2></div><button id="of-add" class="secondary" type="button">+ Add item</button></div><p class="field-help">Item code is optional for new items. Add a photo when it helps identify the item. Picked status is reserved for the store on the print.</p><div class="table-scroll"><table class="entry-table order-table"><tbody id="of-rows"></tbody></table></div><div class="items-footer"><span>4 items per PDF page, with space for photos</span><button id="of-add-bottom" class="secondary" type="button">+ Add item</button></div></section>
+        <section class="panel"><div class="panel-title"><span class="step">01</span><h2>Choose your branch</h2></div><div class="field-grid two"><label>Country<select id="of-country" required disabled><option value="">Select country</option></select></label><div class="branch-picker"><label for="of-branch">Branch</label><input id="of-branch" required disabled autocomplete="off" placeholder="Search branch name" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="of-results"><div id="of-results" class="branch-results" role="listbox" hidden></div></div><label>Order date<input id="of-start" type="date" required></label><label>Delivery date<input id="of-end" type="date" required></label><label>Request to<select id="of-requestTo" required><option value="">Select store / factory</option></select></label><label>Order type<select id="of-orderType"><option>Shop Request</option><option>Customer Order</option><option>Sample</option></select></label><label>Priority<select id="of-priority"><option>Normal</option><option>Urgent</option></select></label><label>Delivery run<select id="of-run"><option>First Car</option><option>Second Car</option><option>Third Car</option><option>Collection</option></select></label><label>Delivery time <span class="optional">(optional)</span><input id="of-time" type="time"></label><label>Delivery location<input id="of-location" maxlength="150" required></label></div></section>
+        <section class="panel sc-items"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Enter the items</h2></div><button id="of-add" class="secondary" type="button">+ Add item</button></div><p class="field-help">Item code is optional for new items. Add a photo when it helps identify the item. Picked status is reserved for the store on the print.</p><div class="table-scroll"><table class="entry-table order-table"><tbody id="of-rows"></tbody></table></div><div class="items-footer"><span>Photos included; continuation pages fit more items</span><button id="of-add-bottom" class="secondary" type="button">+ Add item</button></div></section>
         <section class="panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><label>Branch Manager<input id="of-prepared" required maxlength="100"></label><label>Area Manager <span class="optional">(optional)</span><input id="of-received" maxlength="100"></label></div><div class="signature-label">Signature <span class="required-badge">Required</span></div><canvas id="of-signature" width="900" height="300" tabindex="0" aria-label="Order signature pad"></canvas><button id="of-clear" class="secondary" type="button">Clear signature</button></section>
         <div class="bottom-actions"><button id="of-excel" class="secondary" type="button">Download Excel</button><button id="of-pdf-bottom" class="primary" type="button">Download PDF</button></div>
       </form><div class="sc-sidebar"><aside class="automatic-panel"><h2>Automatic details <small class="auto-badge">Read only</small></h2><label>Reference<input id="of-reference" readonly></label><div class="route-details"><div><span>LEGAL ENTITY</span><strong id="of-entity"></strong><small id="of-warehouse"></small></div></div></aside><aside class="saved-panel"><div class="saved-heading"><h2>Saved versions</h2><button id="of-new" class="secondary" type="button">New form</button></div><p class="field-help">Last 10 versions saved in this browser. Every download creates a new copy.</p><div id="of-saved"></div></aside></div></div>

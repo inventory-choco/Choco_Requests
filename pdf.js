@@ -1,6 +1,7 @@
 (function(root){
  'use strict';
  let fontPromise;
+ const date=(value)=>(typeof module!=='undefined'&&module.exports?require('./rules.js'):root.TransferRules).formatDate(value);
  async function createTransferPDF(data,lib,assets){
   const {PDFDocument,StandardFonts,rgb}=lib||root.PDFLib,doc=await PDFDocument.create();
   const normal=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold);
@@ -25,7 +26,7 @@
     if(lines.length>Math.max(1,Math.floor((height-4)/(fitted+1))))throw new Error('Text is too long for the PDF cell: '+content+'. Please shorten this field.');
     lines.forEach((value,index)=>text(value,/[\u0600-\u06ff]/.test(value)?x+width-3-font.widthOfTextAtSize(value,fitted):x+3,top-4-fitted-index*(fitted+1),fitted,heavy,fill===teal?white:black));
    }
-   cell(h('TRANSFER REQUEST FORM'),28,y,235,27,true,teal,12);cell(data.reference+(data.version?' / v'+data.version:''),263,y,192,27,true,gray,11);cell(data.date,455,y,112,27,true,teal,10);y-=27;
+   cell(h('TRANSFER REQUEST FORM'),28,y,235,27,true,teal,12);cell(data.reference+(data.version?' / v'+data.version:''),263,y,192,27,true,gray,11);cell(date(data.date),455,y,112,27,true,teal,10);y-=27;
    const missing=!!data.route.detailsMissing,widths=missing?[95,444]:[95,180,194,70],xs=missing?[28,123]:[28,123,303,497];
    const headings=missing?[data.route.country,h('BRANCH NAME')]:[data.route.country,h('BRANCH NAME'),h('LEGAL ENTITY'),h(details.codeLabel)];headings.forEach((s,i)=>cell(s,xs[i],y,widths[i],21,true,gray));y-=21;
    const from=missing?[h('TRANSFER FROM'),data.route.from]:[h('TRANSFER FROM'),data.route.from,data.route.fromEntity,details.code];from.forEach((s,i)=>cell(s,xs[i],y,widths[i],32,true));y-=32;
