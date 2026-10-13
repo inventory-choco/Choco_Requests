@@ -31,7 +31,7 @@
    const from=missing?[h('TRANSFER FROM'),data.route.from]:[h('TRANSFER FROM'),data.route.from,data.route.fromEntity,details.code];from.forEach((s,i)=>cell(s,xs[i],y,widths[i],32,true));y-=32;
    const to=missing?[h('TRANSFER TO'),data.route.to]:[h('TRANSFER TO'),data.route.to,data.route.toEntity,''];to.forEach((s,i)=>cell(s,xs[i],y,widths[i],32,true));y-=32;
    const meta=[];if(!missing){meta.push(['FROM WAREHOUSE',data.route.fromWarehouse],['TO WAREHOUSE',data.route.toWarehouse]);if(!details.internal)meta.push(['SUPPLIER',details.supplier]);}meta.push(['TYPE',details.type],['REASON',data.reason]);
-   meta.forEach(([label,value])=>{cell(h(label),28,y,95,18,true,gray);cell(value,123,y,444,18,label==='TYPE');y-=18;});
+   meta.forEach(([label,value])=>{cell(h(label),28,y,95,18,true,gray);cell(label==='TYPE'?h(value):value,123,y,444,18,label==='TYPE');y-=18;});
    if(missing){cell(h('Details not found for this branch combination.'),28,y,539,20,false,gray,8);y-=20;}
    const cols=[18,78,48,76,82,135,56,46],headers=['#','4 BARCODE','ITEM CODE','3 BARCODE','BATCH','ITEM NAME','UOM','QUANTITY'];let x=28;headers.forEach((label,i)=>{cell(h(label),x,y,cols[i],22,true,teal,7);x+=cols[i];});y-=22;
    for(let i=0;i<22;i++){const item=items[i],values=item?[String(pageIndex*22+i+1),item.barcode4,item.code,item.barcode3,item.batch,item.name,item.uom,Number(item.quantity).toFixed(3)]:['','','','','','','',''];x=28;values.forEach((value,j)=>{cell(value,x,y,cols[j],19,false,null,7);x+=cols[j];});y-=19;}

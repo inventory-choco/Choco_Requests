@@ -1,6 +1,6 @@
 (function(){
  'use strict';const el=id=>document.getElementById('sc-'+id),key='inventory.consumption.versions.v1',memory='inventory.consumption.branch.v1';let branch='',choices=[],strokes=[],stroke=null,pointer=null,versions=[],reference='',draftTimer,restoring=false;
- function message(text){el('status').textContent=text;}
+ function message(text){InventoryI18n.setText(el('status'),text);}
  function identity(){const date=new Date(),parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(date),get=t=>parts.find(p=>p.type===t).value;reference='SC '+get('day')+get('month')+get('year')+'-'+get('hour')+get('minute')+get('second')+'-'+crypto.randomUUID().slice(0,4);el('reference').value=reference;el('start').value=el('end').value=get('year')+'-'+get('month')+'-'+get('day');}
  function country(){choices=sorted(routes.filter(r=>r.country===el('country').value).flatMap(r=>[r.from,r.to]));el('branch').disabled=!choices.length;branch='';el('branch').value='';pick('');}
  function pick(value){branch=choices.includes(value)?value:'';el('branch').setCustomValidity(branch?'':'Choose a branch from the results.');const profile=TransferRules.branchProfile(routes,el('country').value,branch);el('entity').textContent=profile?.entity||'';el('warehouse').textContent=profile?.warehouse||'';try{if(branch)localStorage.setItem(memory,JSON.stringify({country:el('country').value,branch}));}catch(_){} }
