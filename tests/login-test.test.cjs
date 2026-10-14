@@ -1,1 +1,3 @@
 const assert=require('node:assert/strict'),{allowedAccess}=require('../login-test');assert.equal(allowedAccess(null),false);assert.equal(allowedAccess({role:'admin'}),true);assert.equal(allowedAccess({role:'branch',branch_number:'243',branch_name:'243 - Chocolala Fujairah',country:'UAE'}),true);for(const v of [{role:'owner'},{role:'branch'},{role:'branch',branch_number:'210',branch_name:null,country:null},'admin'])assert.equal(allowedAccess(v),false);console.log('Login-test checks passed: approved role shape and deny incomplete/unknown assignments.');
+
+assert.equal(require('../admin-users').normalizeEmail(' Test@Gmail.com '),'test@gmail.com');
