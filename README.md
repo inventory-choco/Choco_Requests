@@ -1,20 +1,42 @@
+# Inventory Department branch requests
+
+## Private Google login and minimal Supabase backend
+
+The application requires an approved Google account. Supabase holds only the approved-user assignments, branch directory and two private master catalogs. PDF/Excel files, signatures, photos and draft forms remain on the user's device. There is no central document archive.
+
+Administrators open **Admin** in the top menu to add, edit, disable or remove accounts. Assignments are stored in the private database, not the website source. The current administrator cannot disable, demote or remove their own account.
+
+Each branch account is assigned its own country and source branch. Transfer destinations include all branches in that country. Administrators can choose any branch. These source restrictions guide locally generated forms; generated PDFs are not server-certified submissions.
+
+Account access is checked on login, before downloads, every minute while visible and on window focus. A failed or denied check locks the interface. Removing access cannot recall already downloaded data or files.
+
+Saved forms and photos are isolated by authenticated user ID in local browser storage. Prior unscoped browser history is not automatically imported into a signed-in account. There is no shared-device confidentiality guarantee against someone with access to the browser profile or developer tools.
+
+**Deployment:** commit and push the complete change, including deletion of both public CSV files. Verify Google sign-in on the GitHub Pages URL and verify that the former CSV URLs return 404. Files in earlier public Git commits or earlier downloads remain exposed; deleting the current files does not erase those copies.
+
+**Private master data:** local originals are now outside this repository in `../TRANSFER/private-access/catalogs`. Update Supabase catalogs using the private SQL import tools outside this repository. Do not add catalogs, private user seed SQL, database secrets or generated documents to GitHub. The browser publishable key is intentionally public; database permissions enforce access.
+
+**Local checks:** set `INVENTORY_CATALOG_DIR` to the private catalog directory if using another computer, then run the Node tests. UI tests use offline mock accounts; they do not replace a real Google branch-account login test.
+
+---
+
 # Inventory Department branch forms
 
 Static website for GitHub Pages. Transfer is available. Sample / Consumption and Damages / Expiry are reserved for a later phase.
 
 ## Local preview
 
-Run `python -m http.server 8080 --bind 127.0.0.1` in this folder and open http://127.0.0.1:8080. Do not open index.html directly because browsers restrict loading its CSV.
+Run `python -m http.server 8080 --bind 127.0.0.1` in this folder and open http://127.0.0.1:8080. Do not open index.html directly. Local Google login requires the exact local root URL in the Supabase redirect allowlist; use the published site for the production login check.
 
 ## Publish and update
 
-Upload index.html, styles.css, app.js, csv.js, rules.js, pdf.js, products.js, language.js, favicon.svg, .nojekyll, TRANSFER_CONF.csv, products.csv, and the entire vendor folder to the repository root. In GitHub Settings → Pages choose Deploy from a branch and the repository root. Share the Pages URL after deployment. The GitHub Desktop checkout is D:\github\CHOCOLALA\Choco_Requests; ensure updated website files and CSV are copied there before committing and pushing.
+Commit and push all application files, vendored dependencies and the deletion of both public CSV files. In GitHub Settings → Pages choose Deploy from a branch and the repository root. The checkout is D:\github\CHOCOLALA\Choco_Requests. Supabase Auth Site URL and its redirect allowlist must include https://inventory-choco.github.io/Choco_Requests/ .
 
-Edit TRANSFER_CONF.csv centrally and push the revision. Branches reload the same link to get current routes. The unnamed final column is read as SUPPLIER; it can also be renamed SUPPLIER. UTF-8 and Windows-1252 CSV files are supported. Retain the headings and quoting.
+Edit the private CSV originals outside this checkout and import revised catalogs into Supabase using the private import tools. Do not upload the originals to GitHub. Retain headings, quoting and UTF-8 encoding.
 
 ## Transfer rules
 
-Both branch lists include all branches in the selected country. Search matches case-insensitive partial words in any order. Country and branch options are remembered in this browser. Configured pairs use their exact CSV route. Any two different branches in a country can be selected. Missing pairs are normal: no entry warning is shown, pair details and codes are hidden, branch names remain visible, and the PDF includes a Details not found note. Legal entities from unambiguous branch records determine the automatic type where available. Route matching uses country and CRITERIA = source name + destination name; warehouse choices resolve duplicate routes.
+Administrators can select all branches in the country in both lists. Branch accounts use their assigned source branch; the destination list includes all branches in their country. Search matches case-insensitive partial words in any order. Country and branch options are remembered in this browser. Configured pairs use their exact CSV route. Any two different branches in a country can be selected. Missing pairs are normal: no entry warning is shown, pair details and codes are hidden, branch names remain visible, and the PDF includes a Details not found note. Legal entities from unambiguous branch records determine the automatic type where available. Route matching uses country and CRITERIA = source name + destination name; warehouse choices resolve duplicate routes.
 
 Legal entity comparison ignores case, repeated whitespace and a hyphen before the final entity number. Equal entities show Internal Transfer, hide supplier, and use CSV CODE as TR code. Different entities show Intercompany Sales/Purchase and a supplier code extracted from the final digits of SUPPLIER, preserving leading zeros; no final digits means an empty supplier code. Transfer type, date, reference and codes are read-only. Date/reference are created in Dubai time for each new form; saved forms retain their original date/reference. References use a local timestamp and are not centrally guaranteed unique.
 
@@ -57,7 +79,7 @@ For isolated DOM checks: npm install --prefix tmp/test-runtime jsdom@26 --no-aud
 
 For a pair without a route record, each branch's legal entity and warehouse are resolved independently from both FROM and TO business unit records for the selected country. Consistent records supply the sidebar and PDF; conflicting values remain blank. Internal transfer still requires matching legal entities, and a missing route code remains blank. Supplier details come from consistent source-branch records.
 
-CSV requests use cache revalidation so unchanged files can be reused while checking for updates. Product and UPC lookups use in-memory maps. Translation updates are scoped to the affected row or sidebar. Arabic PDF support loads on its first use, saving approximately 758 KB from initial page loading. Filling forms, signatures, version history and PDF generation run in each browser; users do not share a processing queue. History remains local to each browser, not shared across branches.
+Approved sessions load private CSV bodies once from the authenticated inventory_catalog RPC, with no public-file fallback. Product and UPC lookups use in-memory maps. Translation updates are scoped to the affected row or sidebar. Arabic PDF support loads on its first use, saving approximately 758 KB from initial page loading. Filling forms, signatures, version history and PDF generation run in each browser; users do not share a processing queue. History remains local to each browser, not shared across branches.
 
 PDFs include an Items.xlsx attachment containing item rows and transfer metadata. Extract it using a PDF reader that supports attachments, or use Download Excel and send the spreadsheet alongside the signed PDF. Barcodes, item codes and batches are stored as text to preserve leading zeros and prevent Excel date conversions; quantities are numeric. PDF clipboard column boundaries depend on the PDF viewer and cannot be guaranteed.
 
@@ -74,7 +96,7 @@ Top navigation links provide Transfer, Consumption/Damage and Stock Adjustment. 
 Signature scope correction: only Stock Add/Remove uses Prepared By, Checked By and Confirmed By (Area Manager). Transfer and the second form retain Prepared and sent by / Received by and their two print signature spaces. The second form is Sample / Consumption / Damage / Expiry. Item reasons are SAMPLE, CONSUMPTION, DAMAGE and EXPIRY. EXPIRY requires an Exp. Date; other reasons hide and clear that field. Reports containing any expiry row show Exp. Date on every PDF page and in Excel; other reports retain their original column layout.
 
 ## Automatic updates
-Visible pages check index.html, local scripts/styles and both CSV files every 60 seconds using lightweight HEAD requests and ETag/Last-Modified validators. A changed file schedules a refresh. Checks also run when the tab regains focus. A form containing item rows, names, a variance reason or a signature blocks automatic refresh and displays an update notice. Returning to home applies the update after preserving drafts in each module’s existing local history; full/disabled storage prevents refresh. Blank forms update automatically. update-worker.js revalidates app files on subsequent loads, so unchanged script URLs do not keep old code. The check needs network access and server validators (provided by GitHub Pages); server/CDN deployment delays still apply. An already-open page from before this updater was installed must be reopened once to receive it. New updates work after committing/pushing changed files; no update manifest or branch instructions are needed.
+Visible pages check index.html and local scripts/styles every 60 seconds using lightweight HEAD requests and ETag/Last-Modified validators. A changed application file schedules a refresh. Private catalog revisions load at the next page load/sign-in; updating a catalog alone does not currently trigger an automatic reload. Checks also run when the tab regains focus. A form containing item rows, names, a variance reason or a signature blocks automatic refresh and displays an update notice. Returning to home applies the update after preserving drafts in each module’s existing local history; full/disabled storage prevents refresh. Blank forms update automatically. update-worker.js revalidates app files on subsequent loads, so unchanged script URLs do not keep old code. The check needs network access and server validators (provided by GitHub Pages); server/CDN deployment delays still apply. An already-open page from before this updater was installed must be reopened once to receive it. New updates work after committing/pushing changed files; no update manifest or branch instructions are needed.
 
 Arabic localization covers headings, instructions, placeholders, accessibility labels, inline validation, statuses and dynamic notices, including nodes created after loading. Changing language restores original English interface text. Selectable values and CSV branch/product/legal entity/warehouse/unit data stay unchanged. Automatically derived transfer types and ADD/REMOVE labels are localized for display; calculation and saved data remain compatible.
 
@@ -83,7 +105,5 @@ The fourth form (#order) unifies store and factory requests with country/branch,
 
 Store/Factory revisions: Request to lists business units appearing as FROM or TO records for CHOCOLALA FACTORY LLC (ONE PERSON), instead of generic Store/Factory values. Older saved orders must choose a valid destination before download. First-page metadata highlights Customer Order in red, Shop Request in green, Sample in yellow, and the destination in blue. Later pages repeat only title, branch/reference and item headers. Photos remain 70-point rows; pagination allows five rows on a non-final first page, six on non-final continuation pages and five on a final continuation page, with signatures on the last page only. Date outputs in every PDF/Excel report (including expiry dates) are DD-MMM-YYYY with English month abbreviations; ISO values remain unchanged in saved forms and browser date controls.
 
-## Private login migration: isolated test
-login-test.html uses Supabase Google OAuth (PKCE) and calls inventory_my_access to check only the current user’s assignment. Add its exact public URL to Supabase Auth redirect URLs before testing. This page is separate from the live forms; public CSVs and current request workflows remain unchanged until the private-data migration is ready. The approved account list stays outside this repository. The browser uses a publishable key; no service-role key or Google client secret belongs here. Official Supabase JS 2.117.3 is vendored with its MIT license.
-
-Minimal backend migration: the approved-user list is editable through the administrator panel in login-test.html after running the private 02_minimal_private_backend.sql. The SQL stores only user assignments, a branch directory and two private CSV catalog bodies. It creates no document/request/image/signature storage. All admin operations check the verified backend role; ordinary approved users cannot use user-management functions. Administrators cannot remove/disable their own current account through this panel. The live forms still read public CSVs until the private-loader cutover is complete; do not treat this staging panel as completion of the migration.
+## Login test page
+login-test.html remains a separate Google-login diagnostic using its own browser session. It checks the same private assignments and offers the same server-authorized Admin operations. The production forms now require sign-in through the root page and load private catalogs through Supabase. The approved account seed and SQL files stay outside the public repository. Official Supabase JS 2.117.3 is vendored with its MIT license; no service-role key or Google client secret is included.

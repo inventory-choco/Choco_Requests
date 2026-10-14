@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 const lib=require('../vendor/pdf-lib.min.js'),fontkit=require('../vendor/fontkit.umd.min.js');
 const {createTransferPDF}=require('../pdf.js'),{readRoutes}=require('../csv.js'),{transferDetails,unconfiguredRoute}=require('../rules.js');
 (async()=>{
- const routes=readRoutes(fs.readFileSync('TRANSFER_CONF.csv','utf8')),route=routes.find(r=>r.code==='1125');
+ const routes=readRoutes(require('./private-catalog.cjs').readCatalog('TRANSFER_CONF.csv')),route=routes.find(r=>r.code==='1125');
  const data={language:'ar',route,details:transferDetails(route),reference:'TR 081026-120000',version:1,date:'2026-10-08',reason:'Shop Request',prepared:'TEST PREPARER',received:'',signature:[[[.1,.2],[.3,.8],[.6,.3]]],items:Array.from({length:23},()=>({barcode4:'4117474148970',code:'117474',barcode3:'',batch:'148970',name:'PREMIUM MILO WAFER JAR 300G',uom:'Pieces',quantity:'1'}))};
  const assets={fontkit,fontBytes:fs.readFileSync('vendor/fonts/Arabic-Regular.ttf')};
  fs.mkdirSync('tmp/pdfs',{recursive:true});

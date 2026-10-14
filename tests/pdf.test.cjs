@@ -5,7 +5,7 @@ const {createTransferPDF}=require('../pdf.js');
 const {readRoutes}=require('../csv.js');
 const {transferDetails}=require('../rules.js');
 (async()=>{
- const route=readRoutes(fs.readFileSync('TRANSFER_CONF.csv','utf8')).find(r=>r.code==='1125');
+ const route=readRoutes(require('./private-catalog.cjs').readCatalog('TRANSFER_CONF.csv')).find(r=>r.code==='1125');
  const data={route,details:transferDetails(route),reference:'TR 071026-150000',version:2,date:'2026-10-07',reason:'Shop Request',prepared:'PDF test',received:'',signature:[[[0.1,0.2],[0.3,0.8],[0.6,0.3]]],items:Array.from({length:23},(_,i)=>({barcode4:'4108701148970',code:String(100001+i),barcode3:'3108701427547',batch:'347036-:07102026',name:'PREMIUM TRAY 200-399',uom:'Pieces',quantity:'1'}))};
  const bytes=await createTransferPDF(data,lib);
  assert.equal((await lib.PDFDocument.load(bytes)).getPageCount(),2);

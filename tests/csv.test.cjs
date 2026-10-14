@@ -4,7 +4,7 @@ const path = require('node:path');
 const { parseCSV, readRoutes } = require('../csv.js');
 assert.deepEqual(parseCSV('\uFEFFa,b\r\n"A, B","say ""hello"""\r\n"two\nlines",001\r\n'), [['a', 'b'], ['A, B', 'say "hello"'], ['two\nlines', '001']]);
 assert.throws(() => parseCSV('a,"unfinished'), /Unclosed/);
-const text = fs.readFileSync(path.join(__dirname, '..', 'TRANSFER_CONF.csv'), 'utf8');
+const text = require('./private-catalog.cjs').readCatalog('TRANSFER_CONF.csv');
 const routes = readRoutes(text);
 assert.equal(routes.length, 844);
 assert.deepEqual([...new Set(routes.map(route => route.country))].sort(), ['BAHRAIN', 'OMAN', 'UAE']);

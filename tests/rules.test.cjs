@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { readRoutes } = require('../csv.js');
 const { transferDetails, barcodeDetails, barcode3Details, branchMatches, unconfiguredRoute, hasSignature, uoms } = require('../rules.js');
-const routes = readRoutes(fs.readFileSync(path.join(__dirname, '..', 'TRANSFER_CONF.csv'), 'utf8'));
+const routes = readRoutes(require('./private-catalog.cjs').readCatalog('TRANSFER_CONF.csv'));
 const internal = routes.find(route => route.code === '1125');
 assert.ok(internal);
 assert.equal(transferDetails(internal).type, 'Internal Transfer');
