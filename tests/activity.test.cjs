@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {createRecorder}=require('../activity.js');
+(async()=>{let now=0,active=true,visible=true,accepted=true,requests=[],serial=0;
+const tracker=createRecorder({now:()=>now,active:()=>active,visible:()=>visible,page:()=> 'transfer',uuid:()=>String(++serial),send:async(page,events)=>{requests.push({page,events});return accepted;}});
+tracker.add('transfer','view');tracker.add('transfer','view');tracker.add('transfer','pdf');assert.equal(tracker.pending(),2);
+visible=false;await tracker.flush();assert.equal(requests.length,0);visible=true;await tracker.flush();assert.equal(requests.length,1);assert.equal(requests[0].events.length,2);assert.equal(tracker.pending(),0);
+tracker.add('transfer','excel');await tracker.flush();assert.equal(requests.length,1,'rapid actions stay batched');now=31000;accepted=false;await tracker.flush();assert.equal(tracker.pending(),1,'failed telemetry retains bounded retry');now=62000;accepted=true;await tracker.flush();assert.equal(tracker.pending(),0);
+now=400000;await tracker.flush();assert.equal(requests.length,3,'idle tab stops reporting');tracker.touch();await tracker.flush();assert.equal(requests.length,4);
+for(let i=0;i<50;i++)tracker.add('order','pdf');assert.equal(tracker.pending(),20,'memory queue is bounded');tracker.add('unknown','pdf');assert.equal(tracker.pending(),20);active=false;tracker.add('transfer','view');assert.equal(tracker.pending(),20);tracker.stop();assert.equal(tracker.pending(),0);active=true;tracker.add('transfer','pdf');assert.equal(tracker.pending(),0);
+for(const file of ['app.js','consumption.js','stock.js','order.js'])assert.match(fs.readFileSync(file,'utf8'),/a\.click\(\);a\.remove\(\);try\{globalThis\.InventoryActivity\?\.download/,'download telemetry is fired after browser download starts');
+console.log('Activity tests passed: batching, visibility, idle expiry, retries, bounded memory, shutdown and post-download hooks.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

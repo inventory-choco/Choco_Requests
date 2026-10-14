@@ -119,3 +119,14 @@ Transfer update/export uses COUNTRY, CRITERIA, CODE, Name, From Warehouse, FROM 
 Uploads are full replacements, not incremental rows. Empty or invalid files are rejected before submission; the backend validates independently and applies the change atomically. A revision check rejects saving over another administrator's newer upload. Uploads are limited to 10 MB and 60,000 rows; there is no stored catalog version archive. Export a copy before replacing a list. Export fetches the current private database contents instead of the page's cached list. SQL migrations remain outside the published checkout.
 
 The Google account chooser belongs to Google. Set the app name/logo in Google Auth Platform Branding and complete brand verification to display approved branding; changing the website cannot directly change Google's screen. Keep the existing Google OAuth callback URL.
+
+
+### Approved-user activity (Admin only)
+
+The Admin page shows approximate active users/tabs, unique approved users, page visits and separate PDF/Excel download counts for today, 7 days or 30 days. The database activity migration must be installed before enabling this release; its private installation file is `06_admin_activity.sql`. Keep private migration/seed files outside the published repository.
+
+Activity starts after approval and records only approved-account IDs, tab identifiers, page names, daily counts and server timestamps. It does not collect document contents, product choices, customer details, photos, signatures, IP addresses or anonymous visits. Reports are protected by server-side administrator checks; branches cannot query reports or supply another user's identity.
+
+Visible tabs with recent interaction send a small heartbeat every two minutes. Navigation and download events are batched, with at least 30 seconds between client attempts, a 20-event memory queue, five-second request timeouts and no blocking of login or downloads. A tab counts as active for five minutes after its last report. Dashboard data loads only while Admin is open and automatically refreshes every two minutes. No tracking library or third-party analytics service is used.
+
+The backend retains up to eight recent tabs per account, a bounded retry-deduplication window and one aggregate row per account/page/day. Old activity is pruned on the first activity update each Dubai calendar day: daily totals older than 30 days, tab records older than one day. Inactive sites perform no background writes and cleanup waits for the next activity update. Counts are best-effort browser telemetry, not authentication audit logs. A download count records the browser download action; it cannot prove that the file was saved. Offline activity or a closed tab can lose queued events.

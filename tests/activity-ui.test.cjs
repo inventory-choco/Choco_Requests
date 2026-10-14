@@ -1,0 +1,12 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('../tmp/test-runtime/node_modules/jsdom');
+const dom=new JSDOM(fs.readFileSync('index.html','utf8'),{url:'https://inventory.test/#admin',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,d=w.document;let calls=[],heartbeat,scheduled=[];
+w.setInterval=(fn,ms)=>{if(ms===120000&&!heartbeat)heartbeat=fn;return 1;};w.clearInterval=()=>{};w.setTimeout=(fn,ms)=>{scheduled.push({fn,ms});return scheduled.length;};w.clearTimeout=()=>{};
+w.InventoryAuth={active:true};w.InventoryI18n={translate:s=>s,setText:(node,s)=>node.textContent=s};
+const client={rpc:async(name,args)=>{calls.push({name,args});return{data:name==='inventory_admin_activity'?{summary:{active_users:2,active_tabs:3,unique_users:4,visits:5,pdf:6,excel:7},sessions:[{email:'<img src=x onerror=bad()>',role:'admin',page:'transfer',last_seen:'2026-10-14T12:00:00Z'}],pages:[{page:'transfer',visits:5,pdf:6,excel:7}],accounts:[],generated_at:'2026-10-14T12:00:00Z'}:true,error:null};}};
+w.eval(fs.readFileSync('activity.js','utf8'));const tick=()=>new Promise(setImmediate);
+(async()=>{try{w.InventoryActivity.start(client,{role:'branch'});assert.equal(d.getElementById('activity-panel').hidden,true);assert.equal(calls.filter(x=>x.name==='inventory_admin_activity').length,0);
+w.InventoryActivity.start(client,{role:'admin'});await tick();assert.equal(d.getElementById('activity-panel').hidden,false);assert.equal(d.getElementById('activity-pdf').textContent,'6');assert.equal(d.querySelector('#activity-sessions img'),null);assert.match(d.getElementById('activity-sessions').textContent,/<img/);assert.equal(d.getElementById('activity-updated').textContent,'14-Oct-2026 16:00');
+w.InventoryActivity.download('transfer','pdf');const send=scheduled.find(x=>x.ms===5000);await send.fn();await tick();const ping=calls.find(x=>x.name==='inventory_activity_ping');assert.ok(ping);assert.ok(!('user_id' in ping.args));
+w.InventoryActivity.stop();assert.equal(d.getElementById('activity-panel').hidden,true);assert.equal(d.getElementById('activity-sessions').textContent,'');assert.equal(d.getElementById('activity-pdf').textContent,'0');
+console.log('Activity UI tests passed: Admin-only loading, text-safe rendering, Dubai date format, trusted account payload and logout cleanup.');
+}finally{w.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
