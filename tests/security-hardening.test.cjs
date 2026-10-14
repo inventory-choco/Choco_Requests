@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {parseCSV}=require('../csv.js');
+assert.deepEqual(parseCSV('Code,Name\r\n001,"Example, product"\r\n'),[['Code','Name'],['001','Example, product']]);
+assert.throws(()=>parseCSV('Code,"unfinished'),/Unclosed/);
+const {safeText,baseRevision,changes,toCSV,schemas}=require('../admin-catalogs.js');
+for(const text of ['=SUM(1,2)',' +cmd','\t@SUM(1)','\uFEFF-1'])assert.throws(()=>safeText(text),/Formula/);
+assert.equal(safeText('Chocolate - milk'),'Chocolate - milk');
+assert.equal(baseRevision('products_r12.csv'),'12');assert.equal(baseRevision('products.csv'),null);
+assert.deepEqual(changes([['100001','Old','KG','N','']], [['100001','New','KG','N',''],['100002','Extra','KG','N','']]),{added:1,removed:0,changed:1});
+assert.throws(()=>toCSV(schemas['products.csv'],[['100001','=HYPERLINK("x")','KG','N','']]),/Formula/);
+const html=fs.readFileSync('index.html','utf8');assert.match(html,/http-equiv="Content-Security-Policy"/i);assert.match(html,/object-src 'none'/);
+const auth=fs.readFileSync('auth.js','utf8');assert.match(auth,/storage:root.sessionStorage/);assert.match(auth,/root.top!==root.self/);
+assert.match(fs.readFileSync('login-test.html','utf8'),/http-equiv="refresh"/i);
+for(const name of ['products.csv','TRANSFER_CONF.csv'])assert.equal(fs.existsSync(name),false);
+console.log('Security tests passed: formula boundaries, export revisions, replacement differences, CSP, tab-scoped sessions and retired diagnostic page.');

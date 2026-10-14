@@ -1,1 +1,5 @@
 tmp/
+
+/products.csv
+/TRANSFER_CONF.csv
+/private-access/
