@@ -139,3 +139,10 @@ Oman branch accounts and administrators can use `#production`. The source is alw
 SR numbers are automatic. Each populated row requires a six-digit item code, UOM and positive quantity (up to three decimal places). Product name and UOM fill from the shared product catalog when available; a six-digit code not in the catalog can be entered with a manual UOM. The combined Prepared & Received By name and drawn signature are compulsory. Confirmed By (Factory) is a blank name/signature area for the factory on the printed document. Dates print as DD-MMM-YYYY.
 
 PDFs support English/Arabic, 22 item rows per page, compact continuation headers, final-page signatures and an attached Items.xlsx workbook. Separate Excel download is also available. References begin OFP; the last ten drafts/downloaded versions remain in account-scoped browser storage. Documents are not uploaded to Supabase. Activity uses the existing bounded aggregation service after installing the private `09_oman_production_activity.sql` migration; no extra tracking timer or document database is added.
+
+
+### Session duration and draft recovery
+
+The portal automatically signs out after 12 hours without clicks, typing or input. The deadline is checked every 30 seconds and on returning to the tab, including before an overdue input can reset the clock. This is an inactivity limit, not a fixed 12-hour maximum login duration. Supabase session expiry, revoked sessions, disabled accounts and role changes can still end access earlier. Tab-scoped authentication and server-side checks are unchanged.
+
+Before locking/signing out, and when the tab is hidden or left, the portal attempts to flush current drafts for all form types to account-scoped browser storage. Up to ten entries per type are retained, including downloaded versions. Sign in with the same account on the same browser/device and use Saved versions to reopen the draft. Storage failures, clearing site data or changing devices can prevent recovery; documents remain on the device and are not uploaded to the backend. The explicit clear-saved-data action still deletes drafts rather than recreating them during logout.

@@ -12,6 +12,7 @@ jobs:
           node-version: '22'
       - run: node tests/security-hardening.test.cjs
       - run: node tests/activity.test.cjs
+      - run: node tests/idle-session.test.cjs
       - run: node tests/transfer-criteria.test.cjs
       - run: node tests/transfer-supplier.test.cjs
       - run: node tests/production-pdf.test.cjs
