@@ -8,7 +8,7 @@ const text = require('./private-catalog.cjs').readCatalog('TRANSFER_CONF.csv');
 const routes = readRoutes(text);
 assert.equal(routes.length, 844);
 assert.deepEqual([...new Set(routes.map(route => route.country))].sort(), ['BAHRAIN', 'OMAN', 'UAE']);
-assert.equal(routes[0].supplier, 'CHOCOLALA FACTORY LLC (ONE PERSON)');
+assert.equal(routes[0].supplier, '', 'same-entity transfer has no supplier');
 assert.equal(routes[0].code, '1001');
 assert.equal(readRoutes(text.replace(/TO LEGAL ENTITY,[^\r\n]*/, 'TO LEGAL ENTITY,'))[0].supplier, routes[0].supplier);
 assert.throws(() => readRoutes(text + '\nUAE,broken'), /unexpected number/);

@@ -6,10 +6,12 @@
   function entityKey(name) {
     return name.trim().replace(/\s*-\s*(?=\d+\s*$)/, ' ').replace(/\s+/g, ' ').toUpperCase();
   }
+  function supplierForEntities(from,to) {return from&&to&&entityKey(from)!==entityKey(to)?from.trim():'';}
   function transferDetails(route) {
     const internal = !!route.fromEntity && !!route.toEntity && entityKey(route.fromEntity) === entityKey(route.toEntity);
     if(route.detailsMissing) return {internal,type:internal?'Internal Transfer':'Intercompany Sales/Purchase',prefix:internal?'TR':'IC',codeLabel:'Supplier code',code:'',supplier:''};
-    return { internal, type: internal ? 'Internal Transfer' : 'Intercompany Sales/Purchase', prefix: internal ? 'TR' : 'IC', codeLabel: internal ? 'TR code' : 'Supplier code', code: internal ? route.code : ((route.supplier || '').match(/(\d+)\s*$/)?.[1] || ''), supplier: internal ? '' : route.supplier };
+    const supplier=supplierForEntities(route.fromEntity,route.toEntity);
+    return { internal, type: internal ? 'Internal Transfer' : 'Intercompany Sales/Purchase', prefix: internal ? 'TR' : 'IC', codeLabel: internal ? 'TR code' : 'Supplier code', code: internal ? route.code : (supplier.match(/(\d+)\s*$/)?.[1] || ''), supplier };
   }
   function barcodeDetails(value) {
     return /^4\d{12}$/.test(value) ? { code: value.slice(1, 7), batch: value.slice(-6) } : null;
@@ -35,11 +37,11 @@
     return {country,criteria:from+to,from,to,code:'',name:from+' to '+to,
       fromEntity:source?.entity||'',toEntity:destination?.entity||'',
       fromWarehouse:source?.warehouse||'',toWarehouse:destination?.warehouse||'',
-      supplier:source?.supplier||'',unconfigured:true,detailsMissing:!source?.entity||!destination?.entity};
+      supplier:supplierForEntities(source?.entity,destination?.entity),unconfigured:true,detailsMissing:!source?.entity||!destination?.entity};
   }
   function hasSignature(strokes) { return Array.isArray(strokes) && strokes.some(stroke => Array.isArray(stroke) && stroke.some((p,i) => i > 0 && Math.hypot(p[0]-stroke[i-1][0],p[1]-stroke[i-1][1]) > .002)); }
   function formatDate(value){const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));if(!match)return value||'';const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return match[3]+'-'+(months[Number(match[2])-1]||match[2])+'-'+match[1];}
-  const api = {formatDate, hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, transferDetails, barcodeDetails, barcode3Details, entityKey };
+  const api = {formatDate, hasSignature, branchMatches, branchProfile, unconfiguredRoute, uoms, supplierForEntities, transferDetails, barcodeDetails, barcode3Details, entityKey };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TransferRules = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

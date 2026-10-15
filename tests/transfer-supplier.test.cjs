@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const {supplierForEntities,transferDetails,unconfiguredRoute}=require('../rules.js'),{prepare,toCSV,schemas}=require('../admin-catalogs.js'),{parseCSV,readRoutes}=require('../csv.js');
+const source='Example LLC - 0839',target='Other LLC - 643223';
+assert.equal(supplierForEntities(source,' EXAMPLE LLC  0839 '),'');assert.equal(supplierForEntities(source,target),source);assert.equal(supplierForEntities('',target),'');
+const internal=transferDetails({fromEntity:source,toEntity:'EXAMPLE LLC 0839',supplier:'Wrong supplier',code:'1001'});assert.equal(internal.type,'Internal Transfer');assert.equal(internal.supplier,'');assert.equal(internal.code,'1001');
+const external=transferDetails({fromEntity:source,toEntity:target,supplier:'Wrong supplier 9999',code:'1001'});assert.equal(external.type,'Intercompany Sales/Purchase');assert.equal(external.supplier,source);assert.equal(external.code,'0839');
+const row=['UAE','From WHTo WH','1001','Route','From WH','101 - A',source,'To WH','102 - B',target,'Wrong supplier'];
+const prep=rows=>prepare('TRANSFER_CONF.csv',toCSV(schemas['TRANSFER_CONF.csv'],rows),parseCSV);
+assert.equal(prep([row]).rows[0][10],source);assert.equal(readRoutes(toCSV(schemas['TRANSFER_CONF.csv'],[row]))[0].supplier,source,'existing wrong CSV values are overridden');
+const same=structuredClone(row);same[9]='EXAMPLE LLC 0839';assert.equal(prep([same]).rows[0][10],'');assert.equal(readRoutes(toCSV(schemas['TRANSFER_CONF.csv'],[same]))[0].supplier,'');
+const blank=structuredClone(row);blank[6]='';assert.throws(()=>prep([blank]),/legal entity/);const formula=structuredClone(row);formula[10]='=1+1';assert.throws(()=>prep([formula]),/Formula/);
+const route=unconfiguredRoute(readRoutes(toCSV(schemas['TRANSFER_CONF.csv'],[row])),'UAE','101 - A','102 - B');assert.equal(route.supplier,source);assert.equal(transferDetails(route).code,'0839');
+console.log('Supplier tests passed: internal blank, IC source entity/code, wrong CSV correction, missing-entity rejection and inferred routes.');

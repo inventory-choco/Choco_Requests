@@ -13,6 +13,7 @@ jobs:
       - run: node tests/security-hardening.test.cjs
       - run: node tests/activity.test.cjs
       - run: node tests/transfer-criteria.test.cjs
+      - run: node tests/transfer-supplier.test.cjs
       - name: Keep private master files out of Git
         run: |
           if git ls-files | grep -Ei '(^|/)(products\.csv|TRANSFER_CONF\.csv|branch-access\.private\.(csv|json))$'; then

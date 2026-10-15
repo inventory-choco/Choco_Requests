@@ -33,6 +33,8 @@
       const get = name => cells[headers.indexOf(name)].trim();
       const route = { country: get('COUNTRY'), criteria: get('CRITERIA'), code: get('CODE'), name: get('Name'), from: get('FROM BUSINESS UNIT'), fromWarehouse: get('From Warehouse'), fromEntity: get('FROM LEGAL ENTITY'), to: get('To Business Unit'), toWarehouse: get('To Warehouse'), toEntity: get('TO LEGAL ENTITY'), supplier: supplierIndex >= 0 ? cells[supplierIndex].trim() : '' };
       if (!route.country || !route.from || !route.to || !route.code) throw new Error('CSV row ' + (index + 2) + ' is missing route details.');
+      const rules=typeof module!=='undefined'&&module.exports?require('./rules.js'):root.TransferRules;
+      route.supplier=rules.supplierForEntities(route.fromEntity,route.toEntity);
       return route;
     });
     if (!routes.length) throw new Error('The branch CSV contains no routes.');

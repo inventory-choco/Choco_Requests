@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const {prepare,toCSV,schemas,changes}=require('../admin-catalogs.js'),{parseCSV,readRoutes}=require('../csv.js');
-const from='101 - Example A',to='102 - Example B',legacy=['TEST',from+to,'1001','Test route','Source WH',from,'Entity A','Destination WH',to,'Entity B','Supplier'];
+const from='101 - Example A',to='102 - Example B',legacy=['TEST',from+to,'1001','Test route','Source WH',from,'Entity A','Destination WH',to,'Entity B','Entity A'];
 const warehouse=structuredClone(legacy);warehouse[1]='Source WHDestination WH';
 const prep=rows=>prepare('TRANSFER_CONF.csv',toCSV(schemas['TRANSFER_CONF.csv'],rows),parseCSV);
 assert.deepEqual(prep([legacy]).rows,[warehouse]);assert.deepEqual(prep([warehouse]).rows,[warehouse]);assert.deepEqual(prep(parseCSV(prep([legacy]).csv).slice(1)).rows,[warehouse]);

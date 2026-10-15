@@ -27,6 +27,8 @@
     if(row[4]){if(upcs.has(row[4])&&upcs.get(row[4])!==row[0]){if(!legacy)throw new Error('UPC assigned to multiple products: '+row[4]);upcs.set(row[4],null);}else if(!upcs.has(row[4]))upcs.set(row[4],row[0]);}
    }else{
     if(!row[0]||!row[1]||!row[2]||!row[3]||!row[5]||!row[8])throw new Error('Country, criteria, code, name and both business units are required in row '+line);
+    if(!row[6]||!row[9])throw new Error('Both legal entity names are required in row '+line);
+    safeText(row[10]);const rules=typeof module!=='undefined'&&module.exports?require('./rules.js'):root.TransferRules;row[10]=rules.supplierForEntities(row[6],row[9]);
     if(!row[4]||!row[7])throw new Error('Both warehouse names are required in row '+line);
     if(row[1]!==row[4]+row[7]&&row[1]!==row[5]+row[8])throw new Error('CRITERIA must equal From Warehouse + To Warehouse in row '+line);
     row[1]=row[4]+row[7];if(row[1].length>1000)throw new Error('Multiline or overlong cell in row '+line);
