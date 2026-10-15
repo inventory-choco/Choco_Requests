@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {prepare,toCSV,schemas,changes}=require('../admin-catalogs.js'),{parseCSV,readRoutes}=require('../csv.js');
+const from='101 - Example A',to='102 - Example B',legacy=['TEST',from+to,'1001','Test route','Source WH',from,'Entity A','Destination WH',to,'Entity B','Supplier'];
+const warehouse=structuredClone(legacy);warehouse[1]='Source WHDestination WH';
+const prep=rows=>prepare('TRANSFER_CONF.csv',toCSV(schemas['TRANSFER_CONF.csv'],rows),parseCSV);
+assert.deepEqual(prep([legacy]).rows,[warehouse]);assert.deepEqual(prep([warehouse]).rows,[warehouse]);assert.deepEqual(prep(parseCSV(prep([legacy]).csv).slice(1)).rows,[warehouse]);
+const route=readRoutes(prep([legacy]).csv)[0];assert.equal(route.from,from);assert.equal(route.to,to);assert.equal(route.criteria,warehouse[1]);assert.equal(route.code,'1001');assert.equal(route.fromEntity,'Entity A');
+const bad=structuredClone(warehouse);bad[1]='wrong';assert.throws(()=>prep([bad]),/CRITERIA/);const missing=structuredClone(legacy);missing[4]='';assert.throws(()=>prep([missing]),/warehouse/);
+const longer=structuredClone(legacy);longer[4]='a'.repeat(600);longer[7]='b'.repeat(600);assert.throws(()=>prep([longer]),/overlong/);
+const other=structuredClone(warehouse);other[5]='103 - Example C';other[8]='104 - Example D';other[2]='1002';
+assert.deepEqual(changes([warehouse,other],[warehouse]),{added:0,removed:1,changed:0},'shared warehouses do not merge distinct branch routes');
+assert.ok(!fs.readFileSync('app.js','utf8').includes('r.criteria===chosenFrom+chosenTo'));
+console.log('Transfer criteria tests passed: warehouse concatenation, legacy conversion, round trips, missing/overlong rejection, route identity and explicit branch matching.');

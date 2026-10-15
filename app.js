@@ -33,7 +33,7 @@ function search(input,list,getValues,choose,onChange=()=>{remember();scheduleSav
 }
 function chooseRoute(route){selectedRoute=route;const d=route?TransferRules.transferDetails(route):null;$('route-details').hidden=!route||!!route.detailsMissing;$('supplier-details').hidden=!d||d.internal||!!route?.detailsMissing;$('type').value=InventoryI18n.header(d?.type||'');$('code-label').dataset.english=d?.codeLabel||'Supplier code / TR code';$('code-label').textContent=InventoryI18n.header($('code-label').dataset.english);$('supplier-code').closest('label').hidden=!!route?.detailsMissing;$('supplier-code').value=d?.code||'';$('reference').value=(d?.prefix||'TR')+suffix;if(route)for(const [id,value]of[['from-entity',route.fromEntity],['to-entity',route.toEntity],['from-warehouse',route.fromWarehouse],['to-warehouse',route.toWarehouse],['supplier',d.supplier]])$(id).textContent=value;$('print-button').disabled=$('print-bottom').disabled=false;InventoryI18n.apply(document.querySelector('.automatic-panel'));}
 function setDestination(code=''){
- const matches=routes.filter(r=>r.country===$('country').value&&r.from===chosenFrom&&r.to===chosenTo&&r.criteria===chosenFrom+chosenTo);
+ const matches=routes.filter(r=>r.country===$('country').value&&r.from===chosenFrom&&r.to===chosenTo);
  $('route-choice-wrap').hidden=matches.length<=1;$('route-choice').replaceChildren(new Option('Select warehouse route',''));
  matches.forEach(r=>$('route-choice').add(new Option(r.code+' · '+r.fromWarehouse+' → '+r.toWarehouse,String(routes.indexOf(r)))));
  const selected=matches.find(r=>r.code===code)||(matches.length===1?matches[0]:null)||(!matches.length?TransferRules.unconfiguredRoute(routes,$('country').value,chosenFrom,chosenTo):null);

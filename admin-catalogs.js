@@ -6,7 +6,7 @@
  };
  function safeText(value){if(/^[\s\uFEFF]*[=+\-@]/u.test(String(value)))throw new Error('Formula-like catalog text is not allowed.');return value;}
  function baseRevision(filename){return filename.match(/_r(\d+)\.csv$/i)?.[1]||null;}
- function changes(before,after){const key=row=>row[0]+'\u0000'+(row.length===5?row[4]:row[1]+'\u0000'+row[4]+'\u0000'+row[7]),old=new Map(before.map(r=>[key(r),JSON.stringify(r)])),next=new Map(after.map(r=>[key(r),JSON.stringify(r)]));return {added:[...next].filter(([k])=>!old.has(k)).length,removed:[...old].filter(([k])=>!next.has(k)).length,changed:[...next].filter(([k,v])=>old.has(k)&&old.get(k)!==v).length};}
+ function changes(before,after){const key=row=>row[0]+'\u0000'+(row.length===5?row[4]:JSON.stringify([row[5],row[8],row[4],row[7]])),old=new Map(before.map(r=>[key(r),JSON.stringify(r)])),next=new Map(after.map(r=>[key(r),JSON.stringify(r)]));return {added:[...next].filter(([k])=>!old.has(k)).length,removed:[...old].filter(([k])=>!next.has(k)).length,changed:[...next].filter(([k,v])=>old.has(k)&&old.get(k)!==v).length};}
  function toCSV(headers,rows){return headers.join(',')+'\r\n'+rows.map(row=>row.map(value=>'"'+String(safeText(value)).replace(/"/g,'""')+'"').join(',')).join('\r\n')+'\r\n';}
  function prepare(name,text,parser,legacy=false){
   const headers=schemas[name];if(!headers)throw new Error('Unknown catalog');
@@ -27,7 +27,9 @@
     if(row[4]){if(upcs.has(row[4])&&upcs.get(row[4])!==row[0]){if(!legacy)throw new Error('UPC assigned to multiple products: '+row[4]);upcs.set(row[4],null);}else if(!upcs.has(row[4]))upcs.set(row[4],row[0]);}
    }else{
     if(!row[0]||!row[1]||!row[2]||!row[3]||!row[5]||!row[8])throw new Error('Country, criteria, code, name and both business units are required in row '+line);
-    if(row[1]!==row[5]+row[8])throw new Error('CRITERIA must equal the two business unit names joined together in row '+line);
+    if(!row[4]||!row[7])throw new Error('Both warehouse names are required in row '+line);
+    if(row[1]!==row[4]+row[7]&&row[1]!==row[5]+row[8])throw new Error('CRITERIA must equal From Warehouse + To Warehouse in row '+line);
+    row[1]=row[4]+row[7];if(row[1].length>1000)throw new Error('Multiline or overlong cell in row '+line);
     for(const n of [5,8]){const number=row[n].match(/^(\d+)\s*-/)?.[1];if(!number)throw new Error('Business unit must include branch number in row '+line);const profile=JSON.stringify([row[n],row[0]]);if(branches.has(number)&&branches.get(number)!==profile)throw new Error('Conflicting branch number: '+number);branches.set(number,profile);}
    }
    row.forEach(safeText);if(name==='products.csv'&&(row[1].length>200||row[2].length>80))throw new Error('Product name or UOM is too long.');rows.push(row);
