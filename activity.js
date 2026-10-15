@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const pages=['home','transfer','consumption','stock','order','admin'];
+ const pages=['home','transfer','consumption','stock','order','production','admin'];
  function createRecorder(options){
   let queue=[],busy=false,stopped=false,lastAttempt=-Infinity,lastInput=options.now(),lastPage='';
   function touch(){lastInput=options.now();}
@@ -10,7 +10,7 @@
   return {add,touch,flush,stop,pending:()=>queue.length};
  }
  if(typeof module!=='undefined'&&module.exports){module.exports={createRecorder,pages};return;}
- const el=id=>document.getElementById('activity-'+id),names={home:'All forms',transfer:'Transfer',consumption:'Sample / Consumption / Damage / Expiry',stock:'Stock Adjustment',order:'Store/Factory Request',admin:'Admin'};
+ const el=id=>document.getElementById('activity-'+id),names={home:'All forms',transfer:'Transfer',consumption:'Sample / Consumption / Damage / Expiry',stock:'Stock Adjustment',order:'Store/Factory Request',production:'Oman Factory Production',admin:'Admin'};
  let connection=null,role='',recorder=null,tab='',scheduled=null,heartbeat=null,dashboardTimer=null,loading=false,lastDashboard=-Infinity;
  const page=()=>{const value=location.hash.slice(1);return pages.includes(value)&&(value!=='admin'||role==='admin')?value:'home';};
  const translate=s=>root.InventoryI18n.translate(s),text=(node,s)=>root.InventoryI18n.setText(node,String(s));
@@ -25,7 +25,7 @@
   recorder=createRecorder({now:()=>Date.now(),uuid:()=>crypto.randomUUID(),page,active:()=>root.InventoryAuth.active,visible:()=>!document.hidden,send:async(current,events)=>{const result=await rpc(client,'inventory_activity_ping',{tab_id:tab,page_name:current,events});return !result.error&&result.data===true;}});
   recorder.add(page(),'view');schedule();heartbeat=setInterval(()=>recorder?.flush(),120000);el('panel').hidden=role!=='admin';if(role==='admin'){refresh();dashboardTimer=setInterval(()=>refresh(),120000);}
  }
- function download(current,format){try{if(!recorder||!['transfer','consumption','stock','order'].includes(current)||!['pdf','excel'].includes(format))return;recorder.touch();recorder.add(current,format);schedule();}catch(_){} }
+ function download(current,format){try{if(!recorder||!['transfer','consumption','stock','order','production'].includes(current)||!['pdf','excel'].includes(format))return;recorder.touch();recorder.add(current,format);schedule();}catch(_){} }
  window.addEventListener('hashchange',()=>{recorder?.touch();recorder?.add(page(),'view');schedule();refresh();});
  for(const event of ['pointerdown','keydown','input'])document.addEventListener(event,()=>recorder?.touch(),{passive:true});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){schedule();refresh();}});
