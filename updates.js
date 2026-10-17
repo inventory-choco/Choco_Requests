@@ -8,7 +8,7 @@
  }
  function preserveDrafts(records,storage,hasSignature){let saved=true;for(const [key,data]of records){try{if(!data||!data.items?.length&&!data.prepared&&!data.received&&!data.confirmed&&!data.varianceReason&&!hasSignature(data.signature))continue;let stored=[];try{stored=JSON.parse(storage.getItem(key)||'[]');}catch(_){}if(!Array.isArray(stored))stored=[];const next=[data,...stored.filter(v=>v&&!(v.reference===data.reference&&!v.version))].slice(0,10);storage.setItem(key,JSON.stringify(next));}catch(_){saved=false;}}return saved;}
  const api={createMonitor,preserveDrafts};if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
- const assets=[];const buildVersion='20261017-approvals1';
+ const assets=[];const buildVersion='20261017-pageqty1';
  let banner,loading=false;function notice(){if(!banner){banner=document.createElement('p');banner.className='update-notice';banner.setAttribute('role','status');document.body.append(banner);}banner.textContent=document.documentElement.lang==='ar'?'يتوفر تحديث. أكمل النموذج ثم عد إلى الصفحة الرئيسية لتطبيقه.':'An update is ready. Finish your form, then return to All forms. It will update automatically.';}
  // Explicitly retain drafts from every module before a home-page refresh.
  function preserve(){try{const records=[['chocolala.transfer.forms.v1',snapshot()],['inventory.consumption.versions.v1',root.ConsumptionForm?.snapshot()],['inventory.stock.versions.v1',root.StockForm?.snapshot()],['inventory.order.versions.v1',root.OrderForm?.snapshot()],['inventory.production.versions.v1',root.ProductionForm?.snapshot()]];return preserveDrafts(records,InventoryAuth.storage,TransferRules.hasSignature);}catch(_){return false;}}
