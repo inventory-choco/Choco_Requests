@@ -9,16 +9,16 @@
   <meta name="description" content="Inventory Department branch transfer request forms.">
   <title>Inventory Department · Branch Operations</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="styles.css?v=20261015-session12h">
-  <script src="csv.js?v=20261015-session12h" defer></script>
-  <script src="rules.js?v=20261015-session12h" defer></script>
-  <script src="products.js?v=20261015-session12h" defer></script>
-  <script src="language.js?v=20261015-session12h" defer></script>
-  <script src="vendor/supabase-2.117.3.js?v=20261015-session12h" defer></script>
-  <script src="admin-users.js?v=20261015-session12h" defer></script>
-  <script src="admin-catalogs.js?v=20261015-session12h" defer></script>
-  <script src="activity.js?v=20261015-session12h" defer></script>
-  <script src="auth.js?v=20261015-session12h" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261017-approvals1">
+  <script src="csv.js?v=20261017-approvals1" defer></script>
+  <script src="rules.js?v=20261017-approvals1" defer></script>
+  <script src="products.js?v=20261017-approvals1" defer></script>
+  <script src="language.js?v=20261017-approvals1" defer></script>
+  <script src="vendor/supabase-2.117.3.js?v=20261017-approvals1" defer></script>
+  <script src="admin-users.js?v=20261017-approvals1" defer></script>
+  <script src="admin-catalogs.js?v=20261017-approvals1" defer></script>
+  <script src="activity.js?v=20261017-approvals1" defer></script>
+  <script src="auth.js?v=20261017-approvals1" defer></script>
 </head>
 <body>
   <header class="site-header"><a class="brand" href="#home"><span class="brand-mark">ID</span><span>Inventory Department<small>BRANCH OPERATIONS</small></span></a><nav hidden class="top-nav" aria-label="Request forms"><a href="#transfer">Transfer</a><a href="#consumption">Sample / Consumption / Damage / Expiry</a><a href="#stock">Stock Adjustment</a><a href="#order">Store/Factory Request</a><a id="production-link" href="#production" hidden>Oman Factory Production</a><a id="admin-link" href="#admin" hidden>Admin</a></nav><label class="language-control"><span>Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ar">العربية</option></select></label></header>
@@ -73,7 +73,7 @@
       <div class="sc-workspace"><form id="sc-form">
         <section class="panel"><div class="panel-title"><span class="step">01</span><h2>Choose your branch</h2></div><div class="field-grid two"><label>Country<select id="sc-country" required disabled><option value="">Select country</option></select></label><div class="branch-picker"><label for="sc-branch">Branch</label><input id="sc-branch" required disabled autocomplete="off" placeholder="Search branch name" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sc-results"><div id="sc-results" class="branch-results" role="listbox" hidden></div></div><label>From date<input id="sc-start" type="date" required></label><label>To date<input id="sc-end" type="date" required></label></div></section>
         <section class="panel sc-items"><div class="panel-title items-heading"><div><span class="step">02</span><h2>Enter the items</h2></div><button id="sc-add" class="secondary" type="button">+ Add item</button></div><p class="field-help">Scan a barcode or enter an item code. Product name and unit fill automatically. Choose a reason for each item.</p><div class="table-scroll"><table class="entry-table sc-table"><tbody id="sc-rows"></tbody></table></div><div class="items-footer"><span>22 items per PDF page</span><button id="sc-add-bottom" class="secondary" type="button">+ Add item</button></div></section>
-        <section class="panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; received</h2></div><div class="field-grid two"><label>Prepared and sent by<input id="sc-prepared" required maxlength="100"></label><label>Received by <span class="optional">(optional)</span><input id="sc-received" maxlength="100"></label></div><div class="signature-label">Signature <span class="required-badge">Required</span></div><canvas id="sc-signature" width="900" height="300" tabindex="0" aria-label="Consumption signature pad"></canvas><button id="sc-clear" class="secondary" type="button">Clear signature</button></section>
+        <section class="panel"><div class="panel-title"><span class="step">03</span><h2>Prepared &amp; confirmed</h2></div><div class="field-grid two"><label>Prepared By<input id="sc-prepared" required maxlength="100"></label><label>Confirmed By <span class="optional">(optional)</span><input id="sc-received" maxlength="100"></label></div><div class="signature-label">Signature <span class="required-badge">Required</span></div><canvas id="sc-signature" width="900" height="300" tabindex="0" aria-label="Consumption signature pad"></canvas><button id="sc-clear" class="secondary" type="button">Clear signature</button></section>
         <div class="bottom-actions"><button id="sc-excel" class="secondary" type="button">Download Excel</button><button id="sc-pdf-bottom" class="primary" type="button">Download PDF</button></div>
       </form><div class="sc-sidebar"><aside class="automatic-panel"><h2>Automatic details <small class="auto-badge">Read only</small></h2><label>Reference<input id="sc-reference" readonly></label><div class="route-details"><div><span>LEGAL ENTITY</span><strong id="sc-entity"></strong><small id="sc-warehouse"></small></div></div></aside><aside class="saved-panel"><div class="saved-heading"><h2>Saved versions</h2><button id="sc-new" class="secondary" type="button">New form</button></div><p class="field-help">Last 10 versions saved in this browser. Every download creates a new copy.</p><div id="sc-saved"></div></aside></div></div>
     </section>
